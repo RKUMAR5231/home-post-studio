@@ -447,6 +447,38 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
+
+    /* URL Fetch */
+    .url-fetch-row {
+      display: flex;
+      gap: 7px;
+      margin-bottom: 7px;
+    }
+    .url-fetch-row input {
+      flex: 1;
+      font-size: 12px;
+    }
+    .fetch-btn {
+      padding: 7px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      font-family: 'DM Sans', sans-serif;
+      background: var(--tan);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s;
+    }
+    .fetch-btn:hover { background: #8a6f52; }
+    .fetch-btn:disabled { background: var(--border); color: var(--text-soft); cursor: default; }
+    .fetch-status {
+      font-size: 12px;
+      min-height: 16px;
+      margin-bottom: 4px;
+    }
+
     /* Error */
     .error-msg {
       color: #c0392b;
@@ -508,7 +540,14 @@
       <div class="dealer-grid" id="dealerGrid"></div>
       <div class="dealer-info-bar" id="dealerInfoBar"></div>
 
-      <div class="panel-title">Home photo</div>
+      <div class="panel-title">Fetch from URL <span style="font-weight:400;text-transform:none;font-size:11px;color:var(--text-soft);">— paste a model home page</span></div>
+      <div class="url-fetch-row">
+        <input type="text" id="modelUrl" placeholder="https://floridamodularhomes.net/...the-ace/">
+        <button class="fetch-btn" id="fetchBtn" onclick="fetchFromUrl()">Fetch</button>
+      </div>
+      <div class="fetch-status" id="fetchStatus"></div>
+
+      <div class="panel-title" style="margin-top:14px;">Home photo <span style="font-weight:400;text-transform:none;font-size:11px;color:var(--text-soft);">— or upload manually</span></div>
       <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
         <div class="upload-icon">📷</div>
         <div class="upload-text">Click to upload home photo</div>
@@ -642,7 +681,8 @@
    Format: https://home-post-proxy.YOURNAME.workers.dev
    Your API key lives securely in the Worker — not here.
 ================================================================ */
-const PROXY_URL = 'https://home-post-proxy.rkumar-1a2.workers.dev';
+const PROXY_URL = 'YOUR_WORKER_URL_HERE';
+
 /* ================================================================
    PABBLY WEBHOOK — sends posts to SocialChamp via Pabbly Connect
 ================================================================ */
@@ -1096,6 +1136,153 @@ async function sendToPabbly(platform) {
     btn.textContent    = 'Send to SocialChamp';
   }
 }
+
+
+/* ================================================================
+   URL FETCH — scrape model home page and auto-fill form
+================================================================ */
+async function fetchFromUrl() {
+  const url    = document.getElementById('modelUrl').value.trim();
+  const btn    = document.getElementById('fetchBtn');
+  const status = document.getElementById('fetchStatus');
+
+  if (!url.startsWith('http')) {
+    status.style.color = '#c0392b';
+    status.textContent = 'Please enter a valid URL starting with https://';
+    return;
+  }
+
+  btn.disabled    = true;
+  btn.textContent = 'Fetching...';
+  status.style.color = '#888';
+  status.textContent = 'Loading page...';
+
+  try {
+    // Step 1: fetch the raw HTML via our Worker
+    const res = await fetch(PROXY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ _service: 'scrape', _url: url })
+    });
+    const data = await res.json();
+    const html  = data.html || '';
+
+    // Step 2: ask Claude to extract the home details from the HTML
+    status.textContent = 'Extracting home details...';
+
+    const prompt = `From this HTML page for a manufactured or modular home listing, extract:
+1. model_name - the name of the home model
+2. beds - number of bedrooms
+3. baths - number of bathrooms
+4. sqft - square footage
+5. width - width in feet if available
+6. length - length in feet if available
+7. type - manufactured, modular, mobile etc
+8. feature_image_url - the main/feature image URL (full absolute URL)
+9. price - price if shown
+10. highlights - any key features mentioned (metal roof, wind zone, etc)
+
+HTML:
+${html.substring(0, 8000)}
+
+Return ONLY valid JSON, no markdown:
+{"model_name":"","beds":"","baths":"","sqft":"","type":"","feature_image_url":"","price":"","highlights":""}`;
+
+    const aiRes = await fetch(PROXY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 500,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    const aiData = await aiRes.json();
+    const rawText = aiData.content.map(b => b.text || '').join('');
+    const clean   = rawText.replace(/```json|```/g, '').trim();
+    const details = JSON.parse(clean);
+
+    // Step 3: auto-fill the form fields
+    if (details.model_name) document.getElementById('modelName').value = details.model_name;
+    if (details.beds)        document.getElementById('beds').value = details.beds + (details.beds.includes('BR') ? '' : ' BR');
+    if (details.baths)       document.getElementById('baths').value = details.baths + (details.baths.includes('BA') ? '' : ' BA');
+
+    let sqftVal = details.sqft || '';
+    if (!sqftVal && details.width && details.length) {
+      const w = parseFloat(details.width);
+      const l = parseFloat(details.length);
+      if (w && l) sqftVal = Math.round(w * l) + ' sq ft (approx)';
+    }
+    if (sqftVal) document.getElementById('sqft').value = sqftVal;
+    if (details.price)      document.getElementById('price').value = details.price;
+    if (details.highlights) document.getElementById('extras').value = details.highlights + (details.type ? ', ' + details.type : '');
+
+    // Step 4: load the feature image
+    if (details.feature_image_url) {
+      status.textContent = 'Loading image...';
+      loadImageFromUrl(details.feature_image_url, url);
+    }
+
+    status.style.color = '#1a5c2a';
+    status.textContent = '✓ Details loaded from ' + (details.model_name || 'page') + '!';
+
+  } catch (err) {
+    status.style.color = '#c0392b';
+    status.textContent = 'Error: ' + (err.message || 'Could not fetch page');
+    console.error(err);
+  }
+
+  btn.disabled    = false;
+  btn.textContent = 'Fetch';
+}
+
+function loadImageFromUrl(imageUrl, pageUrl) {
+  // Try to load the image directly into the upload zone
+  const zone = document.getElementById('uploadZone');
+
+  // Convert relative URLs to absolute
+  if (imageUrl.startsWith('//')) imageUrl = 'https:' + imageUrl;
+  if (imageUrl.startsWith('/')) {
+    try {
+      const base = new URL(pageUrl);
+      imageUrl = base.origin + imageUrl;
+    } catch(e) {}
+  }
+
+  // Fetch image via Worker to avoid CORS
+  fetch(PROXY_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ _service: 'scrape', _url: imageUrl })
+  }).then(r => r.json()).then(data => {
+    // data.html is actually the raw image bytes — try direct img tag instead
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      canvas.width  = img.width;
+      canvas.height = img.height;
+      canvas.getContext('2d').drawImage(img, 0, 0);
+      try {
+        uploadedImageData = canvas.toDataURL('image/jpeg');
+        zone.classList.add('has-image');
+        zone.innerHTML = '<img src="' + uploadedImageData + '" alt="Home photo">';
+      } catch(e) {
+        // CORS blocked canvas — just show the image URL as preview
+        zone.classList.add('has-image');
+        zone.innerHTML = '<img src="' + imageUrl + '" alt="Home photo" style="width:100%;height:200px;object-fit:cover;border-radius:10px;">';
+        uploadedImageData = null;
+        console.warn('Image loaded for preview but cannot be sent to AI due to CORS. Upload manually for AI analysis.');
+      }
+    };
+    img.onerror = function() {
+      console.warn('Could not load image from URL:', imageUrl);
+    };
+    img.src = imageUrl;
+  }).catch(e => console.warn('Image fetch failed:', e));
+}
+
 
 // Kick off
 init();
