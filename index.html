@@ -1229,24 +1229,24 @@ Return ONLY valid JSON, no markdown:
     if (details.highlights) document.getElementById('extras').value = details.highlights + (details.type ? ', ' + details.type : '');
 
     // Step 4: store the image URL and show preview
+    status.style.color = '#1a5c2a';
     if (details.feature_image_url) {
       let imgUrl = details.feature_image_url;
-      // Make absolute URL
+      // Make absolute URL if needed
       if (imgUrl.startsWith('//')) imgUrl = 'https:' + imgUrl;
       if (imgUrl.startsWith('/')) {
         try { const base = new URL(url); imgUrl = base.origin + imgUrl; } catch(e) {}
       }
       fetchedImageUrl = imgUrl;
-      uploadedImageData = null; // clear any manual upload
+      uploadedImageData = null;
 
-      // Show as preview in the upload zone
+      // Show preview directly — no need to fetch through Worker
       const zone = document.getElementById('uploadZone');
       zone.classList.add('has-image');
       zone.innerHTML = '<img src="' + imgUrl + '" alt="Home photo" style="width:100%;height:200px;object-fit:cover;border-radius:10px;">';
-      status.textContent = '\u2713 Details + image loaded from ' + (details.model_name || 'page') + '!';
+      status.textContent = '\u2713 Details + image loaded — ' + (details.model_name || 'home') + ' is ready!';
     } else {
-      status.style.color = '#1a5c2a';
-      status.textContent = '\u2713 Details loaded from ' + (details.model_name || 'page') + '!';
+      status.textContent = '\u2713 Details loaded — no image found on page. Upload one manually.';
     }
 
 
@@ -1260,51 +1260,7 @@ Return ONLY valid JSON, no markdown:
   btn.textContent = 'Fetch';
 }
 
-function loadImageFromUrl(imageUrl, pageUrl) {
-  // Try to load the image directly into the upload zone
-  const zone = document.getElementById('uploadZone');
-
-  // Convert relative URLs to absolute
-  if (imageUrl.startsWith('//')) imageUrl = 'https:' + imageUrl;
-  if (imageUrl.startsWith('/')) {
-    try {
-      const base = new URL(pageUrl);
-      imageUrl = base.origin + imageUrl;
-    } catch(e) {}
-  }
-
-  // Fetch image via Worker to avoid CORS
-  fetch(PROXY_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ _service: 'scrape', _url: imageUrl })
-  }).then(r => r.json()).then(data => {
-    // data.html is actually the raw image bytes — try direct img tag instead
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = function() {
-      const canvas = document.createElement('canvas');
-      canvas.width  = img.width;
-      canvas.height = img.height;
-      canvas.getContext('2d').drawImage(img, 0, 0);
-      try {
-        uploadedImageData = canvas.toDataURL('image/jpeg');
-        zone.classList.add('has-image');
-        zone.innerHTML = '<img src="' + uploadedImageData + '" alt="Home photo">';
-      } catch(e) {
-        // CORS blocked canvas — just show the image URL as preview
-        zone.classList.add('has-image');
-        zone.innerHTML = '<img src="' + imageUrl + '" alt="Home photo" style="width:100%;height:200px;object-fit:cover;border-radius:10px;">';
-        uploadedImageData = null;
-        console.warn('Image loaded for preview but cannot be sent to AI due to CORS. Upload manually for AI analysis.');
-      }
-    };
-    img.onerror = function() {
-      console.warn('Could not load image from URL:', imageUrl);
-    };
-    img.src = imageUrl;
-  }).catch(e => console.warn('Image fetch failed:', e));
-}
+// loadImageFromUrl removed — images now passed directly via URL to Claude
 
 
 // Kick off
