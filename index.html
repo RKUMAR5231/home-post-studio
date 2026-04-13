@@ -1174,8 +1174,16 @@ async function fetchFromUrl() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ _service: 'scrape', _url: url })
     });
-    const data = await res.json();
-    const html  = data.html || '';
+    const rawRes = await res.text();
+    let html = '';
+    try {
+      const data = JSON.parse(rawRes);
+      html = data.html || '';
+    } catch(e) {
+      // If JSON parse fails, the response might be raw HTML itself
+      html = rawRes;
+    }
+    if (!html) throw new Error('Could not load page — check the URL and try again.');
 
     // Step 2: ask Claude to extract the home details from the HTML
     status.textContent = 'Extracting home details...';
