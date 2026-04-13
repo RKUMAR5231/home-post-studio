@@ -1169,13 +1169,27 @@ async function fetchFromUrl() {
 
   try {
     // Step 1: fetch HTML via Worker
-    const res  = await fetch(PROXY_URL, {
+    const res     = await fetch(PROXY_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ _service: 'scrape', _url: url })
     });
-    const json = await res.json();
-    const html = json.html || '';
+    const resText = await res.text();
+    // Safely extract html value without JSON.parse (avoids issues with special chars)
+    let html = '';
+    const htmlMatch = resText.match(/"html"\s*:\s*"([\s\S]*)"\s*\}?\s*$/);
+    if (htmlMatch) {
+      try {
+        // Use JSON.parse on just the html field value
+        const parsed = JSON.parse(resText);
+        html = parsed.html || '';
+      } catch(e) {
+        // Fallback: use the raw response text as HTML
+        html = resText;
+      }
+    } else {
+      html = resText;
+    }
 
     // Step 2: parse HTML in browser to get clean text + image URLs
     const parser  = new DOMParser();
@@ -1210,15 +1224,26 @@ async function fetchFromUrl() {
       .replace(/\n{3,}/g, '\n\n')
       .substring(0, 2000);
 
-    // Step 3: send clean text + image list to Claude — NO raw HTML in JSON
+    // Step 3: send clean text + image list to Claude — safely encoded
     status.textContent = 'Extracting details...';
+
+    // Sanitize text — remove any chars that could break JSON
+    const safeText = bodyText
+      .replace(/[\u0000-\u001F\u007F]/g, ' ')  // remove control chars
+      .replace(/\\/g, ' ')                        // remove backslashes
+      .replace(/"/g, "'")                           // replace double quotes with single
+      .substring(0, 1500);
+
+    const safeImgs = allImgs
+      .map(u => u.replace(/"/g, '').replace(/\\/g, ''))
+      .join(', ');
 
     const aiBody = {
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 400,
       messages: [{
         role: 'user',
-        content: 'Extract home listing details from this page text and image URL list. Return ONLY a JSON object with these keys: model_name, beds, baths, sqft, type, feature_image_url, price, highlights. Use empty string if not found.\n\nPAGE TEXT:\n' + bodyText + '\n\nIMAGE URLS:\n' + allImgs.join('\n')
+        content: 'Extract home listing details from this text. Return ONLY a JSON object with keys: model_name, beds, baths, sqft, type, feature_image_url, price, highlights. Use empty string if not found. Pick the best image URL from the list for feature_image_url.\n\nTEXT: ' + safeText + '\n\nIMAGES: ' + safeImgs
       }]
     };
 
