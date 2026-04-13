@@ -1,1303 +1,737 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Home Post Studio</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
-  <style>
-    /* ============================================================
-       THEME
-    ============================================================ */
-    :root {
-      --green-dark:   #003c0f;
-      --green-main:   #005a1e;
-      --green-light:  #e8f4ec;
-      --tan:          #a58769;
-      --off-white:    #f5f5f0;
-      --text:         #1a1a1a;
-      --text-mid:     #555;
-      --text-soft:    #888;
-      --border:       #ddd;
-      --border-light: #eee;
-      --bg:           #f5f5f0;
-      --surface:      #ffffff;
-      --surface-2:    #f7f7f4;
-      --radius-sm:    6px;
-      --radius-md:    10px;
-      --radius-lg:    14px;
-      --shadow:       0 1px 4px rgba(0,0,0,0.07);
-    }
-
-    /* ============================================================
-       RESET & BASE
-    ============================================================ */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'DM Sans', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-    }
-
-    /* ============================================================
-       LAYOUT
-    ============================================================ */
-    .site-header {
-      background: var(--green-dark);
-      padding: 14px 24px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .site-header h1 {
-      font-family: 'Playfair Display', serif;
-      font-size: 20px;
-      font-weight: 500;
-      color: var(--off-white);
-      letter-spacing: -0.2px;
-    }
-    .site-header .subtitle {
-      font-size: 13px;
-      color: rgba(245,245,240,0.6);
-      margin-left: auto;
-    }
-
-    .container {
-      max-width: 1040px;
-      margin: 0 auto;
-      padding: 24px 20px 48px;
-    }
-
-    .workspace {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-    }
-
-    .panel {
-      background: var(--surface);
-      border: 1px solid var(--border-light);
-      border-radius: var(--radius-lg);
-      padding: 20px;
-      box-shadow: var(--shadow);
-    }
-
-    .panel-title {
-      font-size: 11px;
-      font-weight: 500;
-      color: var(--text-soft);
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      margin-bottom: 12px;
-    }
-
-    /* ============================================================
-       DEALER SELECTOR
-    ============================================================ */
-    .dealer-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 7px;
-      margin-bottom: 12px;
-    }
-    .dealer-btn {
-      padding: 9px 11px;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-md);
-      background: var(--surface-2);
-      cursor: pointer;
-      text-align: left;
-      transition: all 0.15s;
-      line-height: 1.3;
-    }
-    .dealer-btn:hover { border-color: var(--green-main); }
-    .dealer-btn.active {
-      background: var(--green-light);
-      border-color: var(--green-main);
-    }
-    .dealer-btn .d-name {
-      display: block;
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--text);
-    }
-    .dealer-btn.active .d-name { color: var(--green-dark); }
-    .dealer-btn .d-loc {
-      display: block;
-      font-size: 11px;
-      color: var(--text-soft);
-      margin-top: 1px;
-    }
-    .dealer-btn.active .d-loc { color: var(--green-main); }
-
-    .dealer-info-bar {
-      background: var(--surface-2);
-      border: 1px solid var(--border-light);
-      border-radius: var(--radius-sm);
-      padding: 9px 11px;
-      font-size: 12px;
-      color: var(--text-mid);
-      line-height: 1.6;
-      display: none;
-      margin-bottom: 14px;
-    }
-    .dealer-info-bar.visible { display: block; }
-    .dealer-info-bar strong { color: var(--text); }
-    .mfr-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
-    .mfr-tag {
-      font-size: 10px;
-      padding: 2px 8px;
-      border-radius: 20px;
-      background: #fff;
-      border: 1px solid var(--border);
-      color: var(--text-mid);
-    }
-
-    /* ============================================================
-       UPLOAD ZONE
-    ============================================================ */
-    .upload-zone {
-      border: 1.5px dashed var(--border);
-      border-radius: var(--radius-md);
-      padding: 28px 16px;
-      text-align: center;
-      cursor: pointer;
-      transition: background 0.15s, border-color 0.15s;
-      margin-bottom: 14px;
-    }
-    .upload-zone:hover {
-      background: var(--surface-2);
-      border-color: var(--tan);
-    }
-    .upload-zone.has-image {
-      border-style: solid;
-      border-color: var(--green-main);
-      padding: 0;
-      overflow: hidden;
-    }
-    .upload-zone img {
-      width: 100%;
-      height: 210px;
-      object-fit: cover;
-      display: block;
-      border-radius: 8px;
-    }
-    .upload-icon { font-size: 26px; margin-bottom: 7px; }
-    .upload-text { font-size: 14px; color: var(--text-mid); }
-    .upload-hint { font-size: 11px; color: var(--text-soft); margin-top: 3px; }
-
-    /* ============================================================
-       FORM ELEMENTS
-    ============================================================ */
-    .field-row { margin-bottom: 11px; }
-    .field-label {
-      display: block;
-      font-size: 12px;
-      font-weight: 500;
-      color: var(--text-mid);
-      margin-bottom: 5px;
-    }
-    input[type="text"],
-    select,
-    textarea {
-      width: 100%;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 13px;
-      color: var(--text);
-      background: var(--surface-2);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 8px 10px;
-      outline: none;
-      transition: border-color 0.15s, background 0.15s;
-      appearance: none;
-    }
-    input[type="text"]:focus,
-    select:focus,
-    textarea:focus {
-      border-color: var(--green-main);
-      background: #fff;
-    }
-    select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 28px; cursor: pointer; }
-    textarea { resize: vertical; min-height: 68px; line-height: 1.5; }
-    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-
-    /* Tabs */
-    .tabs { display: flex; gap: 6px; margin-bottom: 12px; }
-    .tab-btn {
-      flex: 1;
-      padding: 7px 8px;
-      font-size: 12px;
-      font-weight: 500;
-      font-family: 'DM Sans', sans-serif;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      background: var(--surface-2);
-      color: var(--text-mid);
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    .tab-btn.active {
-      background: var(--green-light);
-      border-color: var(--green-main);
-      color: var(--green-dark);
-    }
-
-    /* Tone chips */
-    .tone-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 12px; }
-    .tone-chip {
-      padding: 7px 8px;
-      font-size: 12px;
-      font-family: 'DM Sans', sans-serif;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      background: var(--surface-2);
-      color: var(--text-mid);
-      cursor: pointer;
-      text-align: center;
-      transition: all 0.15s;
-    }
-    .tone-chip.active {
-      background: var(--green-light);
-      border-color: var(--green-main);
-      color: var(--green-dark);
-    }
-
-    /* Generate button */
-    .generate-btn {
-      width: 100%;
-      padding: 12px;
-      font-family: 'Playfair Display', serif;
-      font-size: 16px;
-      font-weight: 500;
-      background: var(--green-main);
-      color: var(--off-white);
-      border: none;
-      border-radius: var(--radius-md);
-      cursor: pointer;
-      transition: background 0.15s, transform 0.1s;
-      margin-top: 8px;
-      letter-spacing: 0.1px;
-    }
-    .generate-btn:hover { background: var(--green-dark); }
-    .generate-btn:active { transform: scale(0.98); }
-    .generate-btn:disabled {
-      background: var(--border);
-      color: var(--text-soft);
-      cursor: default;
-      transform: none;
-    }
-
-    /* ============================================================
-       OUTPUT
-    ============================================================ */
-    .output-section {
-      grid-column: 1 / -1;
-      display: none;
-    }
-    .output-section.visible { display: block; }
-
-    .output-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 12px;
-    }
-    .output-header h2 {
-      font-family: 'Playfair Display', serif;
-      font-size: 17px;
-      font-weight: 500;
-    }
-    .output-dealer-badge {
-      font-size: 11px;
-      padding: 3px 10px;
-      border-radius: 20px;
-      background: var(--green-light);
-      color: var(--green-dark);
-      border: 1px solid #b6d9be;
-    }
-
-    .posts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-
-    .post-card {
-      background: var(--surface);
-      border: 1px solid var(--border-light);
-      border-radius: var(--radius-lg);
-      padding: 16px;
-      box-shadow: var(--shadow);
-    }
-    .post-card-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 10px;
-    }
-    .platform-badge {
-      font-size: 11px;
-      font-weight: 500;
-      padding: 3px 9px;
-      border-radius: 20px;
-    }
-    .badge-fb { background: #e8effa; color: #1877f2; }
-    .badge-ig { background: #fce8f3; color: #c13584; }
-    .char-count { font-size: 11px; color: var(--text-soft); margin-left: auto; }
-
-    .post-text {
-      position: relative;
-      background: var(--surface-2);
-      border: 1px solid var(--border-light);
-      border-radius: var(--radius-sm);
-      padding: 12px;
-      font-size: 13px;
-      line-height: 1.75;
-      white-space: pre-wrap;
-      color: var(--text);
-      min-height: 90px;
-    }
-    .copy-toast {
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      font-size: 11px;
-      background: #d4edda;
-      color: #1a5c2a;
-      padding: 3px 9px;
-      border-radius: 20px;
-      opacity: 0;
-      transition: opacity 0.3s;
-      pointer-events: none;
-    }
-    .copy-toast.show { opacity: 1; }
-
-    .post-actions { display: flex; gap: 7px; margin-top: 9px; }
-    .action-btn {
-      flex: 1;
-      padding: 8px;
-      font-size: 12px;
-      font-family: 'DM Sans', sans-serif;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      background: transparent;
-      color: var(--text);
-      cursor: pointer;
-      transition: background 0.15s;
-    }
-    .action-btn:hover { background: var(--surface-2); }
-    .action-btn.primary {
-      background: var(--green-light);
-      border-color: #b6d9be;
-      color: var(--green-dark);
-    }
-    .action-btn.primary:hover { background: #ceebd6; }
-
-    .action-btn.sc-btn {
-      background: #1a1a2e;
-      color: #fff;
-      border-color: #1a1a2e;
-    }
-    .action-btn.sc-btn:hover { background: #2d2d4e; }
-
-    .scheduler {
-      display: none;
-      margin-top: 10px;
-      padding: 12px;
-      background: var(--surface-2);
-      border: 1px solid var(--border-light);
-      border-radius: var(--radius-md);
-    }
-    .scheduler.visible { display: block; }
-    .scheduler-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      margin-bottom: 4px;
-    }
-    .send-btn {
-      width: 100%;
-      margin-top: 10px;
-      padding: 9px;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 13px;
-      font-weight: 500;
-      background: #005a1e;
-      color: #f5f5f0;
-      border: none;
-      border-radius: var(--radius-sm);
-      cursor: pointer;
-      transition: background 0.15s;
-    }
-    .send-btn:hover { background: #003c0f; }
-    .send-btn:disabled { background: var(--border); color: var(--text-soft); cursor: default; }
-    .send-status {
-      font-size: 12px;
-      margin-top: 7px;
-      min-height: 16px;
-    }
-    .spinner {
-      display: inline-block;
-      width: 14px; height: 14px;
-      border: 2px solid rgba(245,245,240,0.3);
-      border-top-color: var(--off-white);
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-      vertical-align: middle;
-      margin-right: 6px;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-
-    /* URL Fetch */
-    .url-fetch-row {
-      display: flex;
-      gap: 7px;
-      margin-bottom: 7px;
-    }
-    .url-fetch-row input {
-      flex: 1;
-      font-size: 12px;
-    }
-    .fetch-btn {
-      padding: 7px 14px;
-      font-size: 13px;
-      font-weight: 500;
-      font-family: 'DM Sans', sans-serif;
-      background: var(--tan);
-      color: #fff;
-      border: none;
-      border-radius: var(--radius-sm);
-      cursor: pointer;
-      white-space: nowrap;
-      transition: background 0.15s;
-    }
-    .fetch-btn:hover { background: #8a6f52; }
-    .fetch-btn:disabled { background: var(--border); color: var(--text-soft); cursor: default; }
-    .fetch-status {
-      font-size: 12px;
-      min-height: 16px;
-      margin-bottom: 4px;
-    }
-
-    /* Error */
-    .error-msg {
-      color: #c0392b;
-      font-size: 13px;
-      padding: 10px;
-      background: #fdf0ee;
-      border: 1px solid #f5c6c0;
-      border-radius: var(--radius-sm);
-      grid-column: 1 / -1;
-    }
-
-    /* ============================================================
-       FOOTER
-    ============================================================ */
-    .site-footer {
-      text-align: center;
-      font-size: 12px;
-      color: var(--text-soft);
-      margin-top: 32px;
-      padding-top: 20px;
-      border-top: 1px solid var(--border-light);
-    }
-
-    /* ============================================================
-       RESPONSIVE
-    ============================================================ */
-    @media (max-width: 640px) {
-      .workspace,
-      .posts-grid,
-      .dealer-grid,
-      .two-col,
-      .tone-grid {
-        grid-template-columns: 1fr;
-      }
-      .output-section { grid-column: 1; }
-      .site-header .subtitle { display: none; }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Home Post Studio</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--green-dark:#003c0f;--green:#005a1e;--green-light:#e8f4ec;--tan:#a58769;--off-white:#f5f5f0;--text:#1a1a1a;--text-mid:#555;--text-soft:#888;--border:#ddd;--border-light:#eee;--bg:#f0ede8;--surface:#fff;--surface-2:#f7f6f3;--radius:10px;--radius-lg:14px;--shadow:0 1px 4px rgba(0,0,0,.08);--shadow-md:0 4px 16px rgba(0,0,0,.1)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.hdr{background:var(--green-dark);padding:14px 24px;display:flex;align-items:center}
+.hdr h1{font-family:'Playfair Display',serif;font-size:20px;font-weight:500;color:var(--off-white)}
+.hdr-sub{font-size:12px;color:rgba(245,245,240,.55);margin-left:auto}
+.tabs{display:flex;border-bottom:2px solid var(--border);margin-bottom:20px}
+.tab{padding:10px 20px;font-size:13px;font-weight:500;font-family:'DM Sans',sans-serif;border:none;background:none;color:var(--text-soft);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s}
+.tab.active{color:var(--green);border-bottom-color:var(--green)}
+.container{max-width:1060px;margin:0 auto;padding:24px 20px 60px}
+.panel{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-lg);padding:20px;box-shadow:var(--shadow)}
+.panel-title{font-size:11px;font-weight:600;color:var(--text-soft);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
+.workspace{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.full{grid-column:1/-1}
+.dealer-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:12px}
+.dealer-btn{padding:9px 11px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface-2);cursor:pointer;text-align:left;transition:all .15s;line-height:1.3}
+.dealer-btn:hover{border-color:var(--green)}
+.dealer-btn.active{background:var(--green-light);border-color:var(--green)}
+.d-name{display:block;font-size:13px;font-weight:500;color:var(--text)}
+.dealer-btn.active .d-name{color:var(--green-dark)}
+.d-loc{display:block;font-size:11px;color:var(--text-soft);margin-top:1px}
+.dealer-info{background:var(--surface-2);border:1px solid var(--border-light);border-radius:8px;padding:9px 11px;font-size:12px;color:var(--text-mid);line-height:1.6;display:none;margin-bottom:14px}
+.dealer-info.show{display:block}
+.mfr-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+.mfr-tag{font-size:10px;padding:2px 8px;border-radius:20px;background:#fff;border:1px solid var(--border);color:var(--text-mid)}
+.url-row{display:flex;gap:7px;margin-bottom:7px}
+.url-row input{flex:1;font-size:12px}
+.fetch-btn{padding:8px 14px;font-size:13px;font-weight:500;font-family:'DM Sans',sans-serif;background:var(--tan);color:#fff;border:none;border-radius:8px;cursor:pointer;white-space:nowrap;transition:background .15s}
+.fetch-btn:hover{background:#8a6f52}
+.fetch-btn:disabled{background:var(--border);color:var(--text-soft);cursor:default}
+.fetch-status{font-size:12px;min-height:16px;margin-bottom:6px}
+.upload-zone{border:1.5px dashed var(--border);border-radius:var(--radius);padding:24px 16px;text-align:center;cursor:pointer;transition:all .15s;margin-bottom:14px}
+.upload-zone:hover{background:var(--surface-2);border-color:var(--tan)}
+.upload-zone.has-img{border-style:solid;border-color:var(--green);padding:0;overflow:hidden}
+.upload-zone img{width:100%;height:190px;object-fit:cover;display:block;border-radius:9px}
+.upload-icon{font-size:22px;margin-bottom:6px}
+.upload-text{font-size:13px;color:var(--text-mid)}
+.upload-hint{font-size:11px;color:var(--text-soft);margin-top:3px}
+.field-row{margin-bottom:10px}
+.field-label{display:block;font-size:12px;font-weight:500;color:var(--text-mid);margin-bottom:4px}
+input[type=text],select,textarea{width:100%;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;outline:none;transition:border-color .15s}
+input[type=text]:focus,select:focus,textarea:focus{border-color:var(--green);background:#fff}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;cursor:pointer;appearance:none}
+textarea{resize:vertical;min-height:60px;line-height:1.5}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.chip-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.chip{padding:6px 12px;font-size:12px;font-family:'DM Sans',sans-serif;border:1px solid var(--border);border-radius:20px;background:var(--surface-2);color:var(--text-mid);cursor:pointer;transition:all .15s}
+.chip.active{background:var(--green-light);border-color:var(--green);color:var(--green-dark)}
+.btn-primary{width:100%;padding:11px;font-family:'Playfair Display',serif;font-size:15px;font-weight:500;background:var(--green);color:var(--off-white);border:none;border-radius:var(--radius);cursor:pointer;transition:background .15s,transform .1s;margin-top:6px}
+.btn-primary:hover{background:var(--green-dark)}
+.btn-primary:active{transform:scale(.98)}
+.btn-primary:disabled{background:var(--border);color:var(--text-soft);cursor:default;transform:none}
+.btn-sec{flex:1;padding:8px;font-size:12px;font-family:'DM Sans',sans-serif;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--text);cursor:pointer;transition:background .15s}
+.btn-sec:hover{background:var(--surface-2)}
+.btn-csv{background:var(--green-light);border-color:#b6d9be;color:var(--green-dark)}
+.btn-csv:hover{background:#ceebd6}
+.spinner{display:inline-block;width:13px;height:13px;border:2px solid rgba(245,245,240,.3);border-top-color:var(--off-white);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:5px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.output-section{display:none}
+.output-section.show{display:block}
+.output-hdr{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.output-hdr h2{font-family:'Playfair Display',serif;font-size:18px;font-weight:500}
+.dealer-badge{font-size:11px;padding:3px 10px;border-radius:20px;background:var(--green-light);color:var(--green-dark);border:1px solid #b6d9be}
+.posts-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.post-card{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--radius-lg);padding:16px;box-shadow:var(--shadow)}
+.post-card-hdr{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.plat-badge{font-size:11px;font-weight:500;padding:3px 9px;border-radius:20px}
+.badge-fb{background:#e8effa;color:#1877f2}
+.badge-ig{background:#fce8f3;color:#c13584}
+.char-count{font-size:11px;color:var(--text-soft);margin-left:auto}
+.post-text{position:relative;background:var(--surface-2);border:1px solid var(--border-light);border-radius:8px;padding:12px;font-size:13px;line-height:1.75;white-space:pre-wrap;color:var(--text);min-height:90px}
+.copy-toast{position:absolute;top:7px;right:7px;font-size:11px;background:#d4edda;color:#1a5c2a;padding:2px 9px;border-radius:20px;opacity:0;transition:opacity .3s;pointer-events:none}
+.copy-toast.show{opacity:1}
+.post-actions{display:flex;gap:6px;margin-top:8px}
+.err{color:#c0392b;font-size:13px;padding:10px;background:#fdf0ee;border:1px solid #f5c6c0;border-radius:8px;grid-column:1/-1}
+.sched{display:none;margin-top:10px;padding:12px;background:var(--surface-2);border:1px solid var(--border-light);border-radius:var(--radius)}
+.sched.show{display:block}
+.sched-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.send-btn{width:100%;margin-top:8px;padding:9px;font-size:13px;font-weight:500;font-family:'DM Sans',sans-serif;background:var(--green);color:var(--off-white);border:none;border-radius:8px;cursor:pointer;transition:background .15s}
+.send-btn:hover{background:var(--green-dark)}
+.send-btn:disabled{background:var(--border);color:var(--text-soft);cursor:default}
+.send-status{font-size:12px;margin-top:6px;min-height:16px}
+/* GRAPHICS */
+.graphic-workspace{display:grid;grid-template-columns:380px 1fr;gap:16px;align-items:start}
+.template-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.tmpl-btn{border:2px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:border-color .15s;background:none;padding:0;text-align:left}
+.tmpl-btn.active{border-color:var(--green)}
+.tmpl-label{font-size:11px;font-weight:500;padding:5px 8px;color:var(--text-mid);background:var(--surface-2)}
+.tmpl-btn.active .tmpl-label{color:var(--green-dark);background:var(--green-light)}
+.canvas-wrap{position:sticky;top:20px}
+#graphicCanvas{width:100%;height:auto;border-radius:var(--radius-lg);box-shadow:var(--shadow-md);display:block}
+.canvas-actions{display:flex;gap:8px;margin-top:10px}
+.logo-zone{border:1.5px dashed var(--border);border-radius:8px;padding:12px;text-align:center;cursor:pointer;transition:all .15s;font-size:12px;color:var(--text-soft);margin-bottom:10px}
+.logo-zone:hover{border-color:var(--tan);background:var(--surface-2)}
+.logo-zone.has-logo{border-style:solid;border-color:var(--green);color:var(--green-dark)}
+.photo-strip{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px}
+.photo-slot{border:1.5px dashed var(--border);border-radius:8px;aspect-ratio:1;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px;color:var(--text-soft);overflow:hidden;transition:border-color .15s}
+.photo-slot:hover{border-color:var(--tan)}
+.photo-slot img{width:100%;height:100%;object-fit:cover}
+.photo-slot.filled{border-style:solid;border-color:var(--green)}
+@media(max-width:700px){.workspace,.posts-grid,.dealer-grid,.two-col,.graphic-workspace{grid-template-columns:1fr}.full{grid-column:1}}
+</style>
 </head>
 <body>
-
-<!-- ============================================================
-     HEADER
-============================================================ -->
-<header class="site-header">
+<header class="hdr">
   <h1>Home Post Studio</h1>
-  <span class="subtitle">Social media post generator for manufactured &amp; modular homes</span>
+  <span class="hdr-sub">Social media for manufactured &amp; modular home dealers</span>
 </header>
-
 <div class="container">
-  <div class="workspace">
-
-    <!-- ============================================================
-         LEFT PANEL — Dealer + Home Details
-    ============================================================ -->
-    <div class="panel">
-
-      <div class="panel-title">Select dealer</div>
-      <div class="dealer-grid" id="dealerGrid"></div>
-      <div class="dealer-info-bar" id="dealerInfoBar"></div>
-
-      <div class="panel-title">Fetch from URL <span style="font-weight:400;text-transform:none;font-size:11px;color:var(--text-soft);">— paste a model home page</span></div>
-      <div class="url-fetch-row">
-        <input type="text" id="modelUrl" placeholder="https://floridamodularhomes.net/...the-ace/">
-        <button class="fetch-btn" id="fetchBtn" onclick="fetchFromUrl()">Fetch</button>
-      </div>
-      <div class="fetch-status" id="fetchStatus"></div>
-
-      <div class="panel-title" style="margin-top:14px;">Home photo <span style="font-weight:400;text-transform:none;font-size:11px;color:var(--text-soft);">— or upload manually</span></div>
-      <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
-        <div class="upload-icon">📷</div>
-        <div class="upload-text">Click to upload home photo</div>
-        <div class="upload-hint">JPG or PNG — the AI will read the image</div>
-      </div>
-      <input type="file" id="fileInput" accept="image/*" style="display:none">
-
-      <div class="field-row">
-        <label class="field-label">Model name</label>
-        <input type="text" id="modelName" placeholder="e.g. The Jasmine, The Brantley...">
-      </div>
-      <div class="two-col">
-        <div class="field-row">
-          <label class="field-label">Bedrooms</label>
-          <input type="text" id="beds" placeholder="3 BR">
-        </div>
-        <div class="field-row">
-          <label class="field-label">Bathrooms</label>
-          <input type="text" id="baths" placeholder="2 BA">
-        </div>
-      </div>
-      <div class="two-col">
-        <div class="field-row">
-          <label class="field-label">Square footage</label>
-          <input type="text" id="sqft" placeholder="1,400 sq ft">
-        </div>
-        <div class="field-row">
-          <label class="field-label">Price</label>
-          <input type="text" id="price" placeholder="$89,900">
-        </div>
-      </div>
-      <div class="field-row">
-        <label class="field-label">Extra highlights (optional)</label>
-        <textarea id="extras" placeholder="Open floor plan, granite counters, metal roof, move-in ready, land/home package..."></textarea>
-      </div>
-
-    </div>
-
-    <!-- ============================================================
-         RIGHT PANEL — Post Settings
-    ============================================================ -->
-    <div class="panel">
-
-      <div class="panel-title">Platform</div>
-      <div class="tabs">
-        <button class="tab-btn active" data-platform="both" onclick="setPlatform(this)">Both</button>
-        <button class="tab-btn" data-platform="facebook" onclick="setPlatform(this)">Facebook</button>
-        <button class="tab-btn" data-platform="instagram" onclick="setPlatform(this)">Instagram</button>
-      </div>
-
-      <div class="panel-title">Tone</div>
-      <div class="tone-grid">
-        <button class="tone-chip active" data-tone="friendly" onclick="setTone(this)">Friendly &amp; warm</button>
-        <button class="tone-chip" data-tone="professional" onclick="setTone(this)">Professional</button>
-        <button class="tone-chip" data-tone="excited" onclick="setTone(this)">High energy</button>
-        <button class="tone-chip" data-tone="luxury" onclick="setTone(this)">Upscale</button>
-      </div>
-
-      <div class="field-row">
-        <label class="field-label">Post focus</label>
-        <select id="focus">
-          <option value="listing">Home listing / for sale</option>
-          <option value="newmodel">New model arrival</option>
-          <option value="lifestyle">Lifestyle / dream home</option>
-          <option value="financing">Financing &amp; affordability</option>
-          <option value="hurricane">Hurricane-ready / durability</option>
-          <option value="landpackage">Land &amp; home package</option>
-        </select>
-      </div>
-
-      <div class="field-row">
-        <label class="field-label">Call to action</label>
-        <select id="cta">
-          <option value="visit">Visit our showroom</option>
-          <option value="call">Call us today</option>
-          <option value="dm">Send us a DM</option>
-          <option value="website">Visit our website</option>
-          <option value="custom">Custom...</option>
-        </select>
-      </div>
-      <div class="field-row" id="customCtaRow" style="display:none">
-        <input type="text" id="customCta" placeholder="Type your custom call to action...">
-      </div>
-
-      <div class="field-row">
-        <label class="field-label">Hashtag style</label>
-        <select id="hashtagStyle">
-          <option value="moderate">Moderate (8–12 tags)</option>
-          <option value="minimal">Minimal (3–5 tags)</option>
-          <option value="full">Full set (15–20 tags)</option>
-          <option value="none">No hashtags</option>
-        </select>
-      </div>
-
-      <div class="field-row">
-        <label class="field-label">Include emoji?</label>
-        <select id="emoji">
-          <option value="yes">Yes</option>
-          <option value="no">No</option>
-        </select>
-      </div>
-
-      <button class="generate-btn" id="generateBtn" onclick="generatePosts()">
-        Generate Posts
-      </button>
-
-    </div>
-
-    <!-- ============================================================
-         OUTPUT
-    ============================================================ -->
-    <div class="output-section panel" id="outputSection">
-      <div class="output-header">
-        <h2>Generated Posts</h2>
-        <span class="output-dealer-badge" id="outputBadge"></span>
-      </div>
-      <div class="posts-grid" id="postsGrid"></div>
-    </div>
-
-  </div><!-- .workspace -->
-
-  <div class="site-footer">
-    Home Post Studio &mdash; Built for manufactured &amp; modular home dealers
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('posts',this)">✍️ Generate Posts</button>
+    <button class="tab" onclick="switchTab('graphics',this)">🎨 Create Graphic</button>
   </div>
-</div><!-- .container -->
 
+  <!-- POSTS TAB -->
+  <div id="tab-posts">
+    <div class="workspace">
+      <div class="panel">
+        <div class="panel-title">Select Dealer</div>
+        <div class="dealer-grid" id="dealerGrid"></div>
+        <div class="dealer-info" id="dealerInfo"></div>
+        <div class="panel-title">Fetch from URL <span style="font-weight:400;text-transform:none;font-size:11px;color:var(--text-soft)">paste a model home page</span></div>
+        <div class="url-row">
+          <input type="text" id="modelUrl" placeholder="https://www.floridamodularhomes.net/.../the-ace/">
+          <button class="fetch-btn" id="fetchBtn" onclick="fetchFromUrl()">Fetch</button>
+        </div>
+        <div class="fetch-status" id="fetchStatus"></div>
+        <div class="panel-title">Home Photo <span style="font-weight:400;text-transform:none;font-size:11px;color:var(--text-soft)">or upload manually</span></div>
+        <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+          <div class="upload-icon">📷</div>
+          <div class="upload-text">Click to upload photo</div>
+          <div class="upload-hint">JPG or PNG</div>
+        </div>
+        <input type="file" id="fileInput" accept="image/*" style="display:none">
+        <div class="field-row"><label class="field-label">Model Name</label><input type="text" id="modelName" placeholder="e.g. The Jasmine, The Brantley..."></div>
+        <div class="two-col">
+          <div class="field-row"><label class="field-label">Bedrooms</label><input type="text" id="beds" placeholder="3 BR"></div>
+          <div class="field-row"><label class="field-label">Bathrooms</label><input type="text" id="baths" placeholder="2 BA"></div>
+        </div>
+        <div class="two-col">
+          <div class="field-row"><label class="field-label">Sq Footage</label><input type="text" id="sqft" placeholder="1,400 sq ft"></div>
+          <div class="field-row"><label class="field-label">Price</label><input type="text" id="price" placeholder="$89,900"></div>
+        </div>
+        <div class="field-row"><label class="field-label">Highlights</label><textarea id="extras" placeholder="Metal roof, open floor plan, move-in ready..."></textarea></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">Platform</div>
+        <div class="chip-row">
+          <button class="chip active" data-val="both" onclick="setChip(this,'platform')">Both</button>
+          <button class="chip" data-val="facebook" onclick="setChip(this,'platform')">Facebook</button>
+          <button class="chip" data-val="instagram" onclick="setChip(this,'platform')">Instagram</button>
+        </div>
+        <div class="panel-title">Tone</div>
+        <div class="chip-row">
+          <button class="chip active" data-val="friendly" onclick="setChip(this,'tone')">Friendly</button>
+          <button class="chip" data-val="professional" onclick="setChip(this,'tone')">Professional</button>
+          <button class="chip" data-val="excited" onclick="setChip(this,'tone')">High Energy</button>
+          <button class="chip" data-val="luxury" onclick="setChip(this,'tone')">Upscale</button>
+        </div>
+        <div class="field-row"><label class="field-label">Post Focus</label>
+          <select id="focus">
+            <option value="listing">Home listing / for sale</option>
+            <option value="newmodel">New model arrival</option>
+            <option value="lifestyle">Lifestyle / dream home</option>
+            <option value="financing">Financing &amp; affordability</option>
+            <option value="hurricane">Hurricane-ready / durability</option>
+            <option value="landpackage">Land &amp; home package</option>
+          </select>
+        </div>
+        <div class="field-row"><label class="field-label">Call to Action</label>
+          <select id="cta">
+            <option value="visit">Visit our showroom</option>
+            <option value="call">Call us today</option>
+            <option value="dm">Send us a DM</option>
+            <option value="website">Visit our website</option>
+            <option value="custom">Custom...</option>
+          </select>
+        </div>
+        <div class="field-row" id="customCtaRow" style="display:none"><input type="text" id="customCta" placeholder="Your custom call to action..."></div>
+        <div class="field-row"><label class="field-label">Hashtags</label>
+          <select id="hashtagStyle">
+            <option value="moderate">Moderate (8–12)</option>
+            <option value="minimal">Minimal (3–5)</option>
+            <option value="full">Full set (15–20)</option>
+            <option value="none">None</option>
+          </select>
+        </div>
+        <div class="field-row"><label class="field-label">Emoji</label>
+          <select id="emoji"><option value="yes">Yes</option><option value="no">No</option></select>
+        </div>
+        <button class="btn-primary" id="generateBtn" onclick="generatePosts()">Generate Posts</button>
+      </div>
+      <div class="panel full output-section" id="outputSection">
+        <div class="output-hdr">
+          <h2>Generated Posts</h2>
+          <span class="dealer-badge" id="outputBadge"></span>
+          <button class="btn-sec btn-csv" style="margin-left:auto;flex:0;padding:7px 14px;font-size:12px" onclick="exportCSV()">⬇ Download CSV</button>
+        </div>
+        <div class="posts-grid" id="postsGrid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GRAPHICS TAB -->
+  <div id="tab-graphics" style="display:none">
+    <div class="graphic-workspace">
+      <div>
+        <div class="panel" style="margin-bottom:16px">
+          <div class="panel-title">Select Dealer</div>
+          <div class="dealer-grid" id="gDealerGrid"></div>
+          <div class="panel-title" style="margin-top:12px">Template</div>
+          <div class="template-grid">
+            <button class="tmpl-btn active" id="tmpl1btn" onclick="selectTemplate(1)">
+              <div style="background:linear-gradient(135deg,#1a6fc4,#0d4a8a);height:60px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:600;letter-spacing:.5px">PROMO STYLE</div>
+              <div class="tmpl-label">Single Photo + Promo Text</div>
+            </button>
+            <button class="tmpl-btn" id="tmpl2btn" onclick="selectTemplate(2)">
+              <div style="background:#2d5a27;height:60px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:600;letter-spacing:.5px">SHOWCASE STYLE</div>
+              <div class="tmpl-label">Logo + Multi Photo</div>
+            </button>
+          </div>
+          <div class="panel-title">Dealer Logo <span style="font-weight:400;text-transform:none;font-size:11px;color:var(--text-soft)">optional — PNG preferred</span></div>
+          <div class="logo-zone" id="logoZone" onclick="document.getElementById('logoInput').click()">Click to upload logo</div>
+          <input type="file" id="logoInput" accept="image/*" style="display:none">
+
+          <div id="t1controls">
+            <div class="panel-title">Main Photo</div>
+            <div class="upload-zone" id="gZone1" onclick="document.getElementById('gFile1').click()" style="margin-bottom:10px;padding:16px">
+              <div class="upload-icon">🏠</div><div class="upload-text">Click to upload home photo</div>
+            </div>
+            <input type="file" id="gFile1" accept="image/*" style="display:none">
+            <div class="field-row"><label class="field-label">Model Name</label><input type="text" id="g1model" placeholder="THE WESTON" oninput="renderGraphic()"></div>
+            <div class="two-col">
+              <div class="field-row"><label class="field-label">Specs</label><input type="text" id="g1specs" placeholder="3 Bed / 2 Bath / 1,740 Sq Ft" oninput="renderGraphic()"></div>
+              <div class="field-row"><label class="field-label">Price</label><input type="text" id="g1price" placeholder="$129,900" oninput="renderGraphic()"></div>
+            </div>
+            <div class="field-row"><label class="field-label">Highlight Bar</label><input type="text" id="g1highlight" placeholder="READY FOR IMMEDIATE DELIVERY!" oninput="renderGraphic()"></div>
+            <div class="field-row"><label class="field-label">Sub Text</label><input type="text" id="g1subhl" placeholder="ON YOUR LOT TODAY" oninput="renderGraphic()"></div>
+            <div class="field-row"><label class="field-label">Badge (top left)</label><input type="text" id="g1badge" placeholder="MODEL HOME FOR SALE" oninput="renderGraphic()"></div>
+            <div class="field-row"><label class="field-label">Website</label><input type="text" id="g1website" placeholder="www.floridamodularhomes.net" oninput="renderGraphic()"></div>
+            <div class="field-row"><label class="field-label">Phone</label><input type="text" id="g1phone" placeholder="(904) 429-9985" oninput="renderGraphic()"></div>
+            <div class="field-row"><label class="field-label">Address</label><input type="text" id="g1address" placeholder="1800 State Road 207, St Augustine FL 32086" oninput="renderGraphic()"></div>
+          </div>
+
+          <div id="t2controls" style="display:none">
+            <div class="panel-title">Exterior Photo</div>
+            <div class="upload-zone" id="gZone2" onclick="document.getElementById('gFile2').click()" style="margin-bottom:10px;padding:16px">
+              <div class="upload-icon">🏠</div><div class="upload-text">Click to upload exterior photo</div>
+            </div>
+            <input type="file" id="gFile2" accept="image/*" style="display:none">
+            <div class="panel-title">Interior Photos (up to 3)</div>
+            <div class="photo-strip">
+              <div class="photo-slot" id="slot0" onclick="document.getElementById('int0').click()"><span>+ Photo 1</span></div>
+              <div class="photo-slot" id="slot1" onclick="document.getElementById('int1').click()"><span>+ Photo 2</span></div>
+              <div class="photo-slot" id="slot2" onclick="document.getElementById('int2').click()"><span>+ Photo 3</span></div>
+            </div>
+            <input type="file" id="int0" accept="image/*" style="display:none">
+            <input type="file" id="int1" accept="image/*" style="display:none">
+            <input type="file" id="int2" accept="image/*" style="display:none">
+            <div class="field-row"><label class="field-label">Headline</label><input type="text" id="g2headline" placeholder="FIND YOUR DREAM HOME" oninput="renderGraphic()"></div>
+            <div class="field-row"><label class="field-label">Model Name</label><input type="text" id="g2model" placeholder="The Tollison Creek" oninput="renderGraphic()"></div>
+            <div class="field-row"><label class="field-label">Specs</label><input type="text" id="g2specs" placeholder="2,855 Sq ft | 4 Bedroom | 3.5 Bathroom" oninput="renderGraphic()"></div>
+            <div class="field-row"><label class="field-label">Phone</label><input type="text" id="g2phone" placeholder="(865) 512-9250" oninput="renderGraphic()"></div>
+            <div class="field-row"><label class="field-label">Website</label><input type="text" id="g2website" placeholder="www.preferredmodularhomes.com" oninput="renderGraphic()"></div>
+          </div>
+        </div>
+      </div>
+      <div class="canvas-wrap">
+        <canvas id="graphicCanvas" width="1080" height="1080"></canvas>
+        <div class="canvas-actions">
+          <button class="btn-sec" onclick="renderGraphic()" style="flex:0;padding:8px 16px">↻ Refresh</button>
+          <button class="btn-sec btn-csv" onclick="downloadGraphic()" style="flex:1">⬇ Download 1080×1080 PNG</button>
+        </div>
+        <p style="font-size:11px;color:var(--text-soft);margin-top:8px;text-align:center">Preview shown at 50% — download is full resolution</p>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
 /* ================================================================
-   !! CONFIGURATION — PASTE YOUR CLOUDFLARE WORKER URL BELOW !!
-   Format: https://home-post-proxy.YOURNAME.workers.dev
-   Your API key lives securely in the Worker — not here.
+   CONFIG
 ================================================================ */
-const PROXY_URL = 'YOUR_WORKER_URL_HERE';
-
-/* ================================================================
-   PABBLY WEBHOOK — sends posts to SocialChamp via Pabbly Connect
-================================================================ */
+const PROXY_URL      = 'https://home-post-proxy.rkumar-1a2.workers.dev';
 const PABBLY_WEBHOOK = 'https://connect.pabbly.com/webhook-listener/webhook/IjU3NjYwNTY5MDYzNzA0MzA1MjY0NTUzNCI_3D_pc/IjU3NjcwNTZmMDYzZjA0Mzc1MjZkNTUzMjUxMzYi_pc';
 
-
 /* ================================================================
-   DEALER DATA
-   To add more dealers, copy one object and fill in the details.
+   DEALERS
 ================================================================ */
 const DEALERS = [
-  {
-    id: 'pmh_powell',
-    name: 'PMH',
-    location: 'Powell, TN',
-    address: 'Powell, Tennessee',
-    phone: null,
-    website: 'preferredmodularhomes.com',
-    manufacturers: ['Franklin Homes', 'Sunshine Homes', 'Tru Homes'],
-    hashtags: ['#PreferredModularHomes', '#PMHomes', '#PowellTN', '#TennesseeHomes', '#ModularHomesTN', '#ManufacturedHomesTN', '#TNHomes'],
-    notes: 'Manufactured and modular home retailer serving the Powell, Tennessee area.'
-  },
-  {
-    id: 'fmh_staugustine',
-    name: 'Florida Modular Homes',
-    location: 'St. Augustine, FL',
-    address: '1800 State Road 207, St. Augustine FL 32086',
-    phone: '(904) 429-9985',
-    website: 'floridamodularhomes.net',
-    manufacturers: ['Franklin Homes', 'Scotbilt Homes'],
-    hashtags: ['#FloridaModularHomes', '#StAugustineFlorida', '#FMHomes', '#ModularHomesFL', '#OffFrameModular', '#FloridaHomes', '#WindZone3', '#StAugustine'],
-    notes: 'Licensed General Contractor specializing in off-frame modular sets on concrete stem wall foundations. Wind Zone 3 construction available. Services all of Florida. Tagline: "Florida\'s #1 Retailer in Modular Home Sales!"'
-  },
-  {
-    id: 'fpfh_ocala',
-    name: 'Florida Prefab Modular Homes',
-    location: 'Ocala, FL',
-    address: '4851 South Pine Ave, Ocala FL 34480',
-    phone: '(352) 300-3237',
-    website: 'floridaprefabhomes.com',
-    manufacturers: ['Franklin Homes', 'Timber Creek Housing', 'Southern Energy Homes', 'Palm Harbor Homes', 'Impact Housing'],
-    hashtags: ['#FloridaPrefabHomes', '#OcalaFL', '#PrefabModular', '#ModularHomesOcala', '#FloridaPrefab', '#DreamDesignDeliver', '#FloridaHomes', '#PalmHarborHomes'],
-    notes: 'Tagline: "Dream, Design, Deliver — Your Key to Easy Living." Wide manufacturer selection. Also offers Tiny Homes and ADUs. Serves all of Florida. Hours: Mon–Sat 9am–4pm.'
-  },
-  {
-    id: 'och_ocala',
-    name: 'Ocala Custom Homes',
-    location: 'Ocala, FL',
-    address: '6095 South Pine Avenue, Ocala FL 34480',
-    phone: '(888) 546-4707',
-    website: 'ocalacustomhomes.com',
-    manufacturers: ['Jacobsen Homes', 'Southern Energy Homes', 'Prime Homes', 'Redman Homes'],
-    hashtags: ['#OcalaCustomHomes', '#JacobsenHomes', '#OcalaFL', '#CustomModularHomes', '#FullCustomization', '#CentralFlorida', '#ModularHomes', '#MobileHomes'],
-    notes: 'Official Jacobsen Model & Design Center. Over 150 years combined staff experience. Full customization available on all Jacobsen homes. Tagline: "Quality is not Expensive, it\'s Priceless!" Hours: Mon–Thu 9–6, Fri–Sat 9–5, Sun 12–4.'
-  }
-  /*
-  ,{
-    id: 'new_dealer',
-    name: 'New Dealer Name',
-    location: 'City, State',
-    address: '123 Main St, City, State ZIP',
-    phone: '(555) 000-0000',
-    website: 'example.com',
-    manufacturers: ['Manufacturer 1', 'Manufacturer 2'],
-    hashtags: ['#Hashtag1', '#Hashtag2', '#Hashtag3'],
-    notes: 'Any extra notes about this dealer for the AI to use.'
-  }
-  */
+  { id:'pmh', name:'PMH', location:'Powell, TN', address:'Powell, Tennessee', phone:null, website:'preferredmodularhomes.com',
+    manufacturers:['Franklin Homes','Sunshine Homes','Tru Homes'],
+    hashtags:['#PreferredModularHomes','#PMHomes','#PowellTN','#TennesseeHomes','#ModularHomesTN','#ManufacturedHomesTN'],
+    notes:'Manufactured and modular home retailer in Powell, Tennessee.' },
+  { id:'fmh', name:'Florida Modular Homes', location:'St. Augustine, FL', address:'1800 State Road 207, St. Augustine FL 32086', phone:'(904) 429-9985', website:'floridamodularhomes.net',
+    manufacturers:['Franklin Homes','Scotbilt Homes'],
+    hashtags:['#FloridaModularHomes','#StAugustineFlorida','#ModularHomesFL','#OffFrameModular','#WindZone3','#FloridaHomes'],
+    notes:'Licensed General Contractor. Off-frame modular on concrete stem wall. Wind Zone 3. Serves all of Florida.' },
+  { id:'fpfh', name:'Florida Prefab Modular Homes', location:'Ocala, FL', address:'4851 South Pine Ave, Ocala FL 34480', phone:'(352) 300-3237', website:'floridaprefabhomes.com',
+    manufacturers:['Franklin Homes','Timber Creek Housing','Southern Energy Homes','Palm Harbor Homes','Impact Housing'],
+    hashtags:['#FloridaPrefabHomes','#OcalaFL','#PrefabModular','#DreamDesignDeliver','#FloridaHomes'],
+    notes:'Tagline: Dream, Design, Deliver. Wide manufacturer selection including Tiny Homes and ADUs.' },
+  { id:'och', name:'Ocala Custom Homes', location:'Ocala, FL', address:'6095 South Pine Avenue, Ocala FL 34480', phone:'(888) 546-4707', website:'ocalacustomhomes.com',
+    manufacturers:['Jacobsen Homes','Southern Energy Homes','Prime Homes','Redman Homes'],
+    hashtags:['#OcalaCustomHomes','#JacobsenHomes','#OcalaFL','#CustomModularHomes','#FullCustomization','#CentralFlorida'],
+    notes:'Jacobsen Model and Design Center. Full customization available. Quality is not Expensive, its Priceless!' }
 ];
 
-
 /* ================================================================
-   APP STATE
+   STATE
 ================================================================ */
-let selectedDealer = DEALERS[0];
+let selectedDealer  = DEALERS[0];
+let gDealer         = DEALERS[0];
 let currentPlatform = 'both';
-let currentTone = 'friendly';
-let uploadedImageData = null;
-let fetchedImageUrl = null;
-
+let currentTone     = 'friendly';
+let uploadedImg     = null;
+let fetchedImgUrl   = null;
+let generatedPosts  = {};
+let currentTemplate = 1;
+let logoImg = null, gImg1 = null, gImg2 = null;
+let intImgs = [null, null, null];
 
 /* ================================================================
-   INIT
+   TABS
 ================================================================ */
-function init() {
-  buildDealerGrid();
-  showDealerInfo(DEALERS[0]);
-
-  document.getElementById('fileInput').addEventListener('change', handleImageUpload);
-  document.getElementById('cta').addEventListener('change', function() {
-    document.getElementById('customCtaRow').style.display = this.value === 'custom' ? 'block' : 'none';
-  });
+function switchTab(tab, btn) {
+  document.getElementById('tab-posts').style.display    = tab==='posts'    ? '' : 'none';
+  document.getElementById('tab-graphics').style.display = tab==='graphics' ? '' : 'none';
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
 }
 
-function buildDealerGrid() {
-  const grid = document.getElementById('dealerGrid');
-  DEALERS.forEach((dealer, i) => {
+/* ================================================================
+   DEALER GRIDS
+================================================================ */
+function buildGrid(id, onSelect) {
+  const grid = document.getElementById(id);
+  DEALERS.forEach((d, i) => {
     const btn = document.createElement('button');
-    btn.className = 'dealer-btn' + (i === 0 ? ' active' : '');
-    btn.innerHTML = `<span class="d-name">${dealer.name}</span><span class="d-loc">${dealer.location}</span>`;
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.dealer-btn').forEach(b => b.classList.remove('active'));
+    btn.className = 'dealer-btn' + (i===0?' active':'');
+    btn.innerHTML = '<span class="d-name">'+d.name+'</span><span class="d-loc">'+d.location+'</span>';
+    btn.onclick = () => {
+      grid.querySelectorAll('.dealer-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      selectedDealer = dealer;
-      showDealerInfo(dealer);
-    });
+      onSelect(d);
+    };
     grid.appendChild(btn);
   });
 }
 
-function showDealerInfo(dealer) {
-  const bar = document.getElementById('dealerInfoBar');
-  const mfrHtml = dealer.manufacturers.map(m => `<span class="mfr-tag">${m}</span>`).join('');
-  bar.innerHTML = `
-    <strong>${dealer.name}</strong> &mdash; ${dealer.address}
-    ${dealer.phone ? ' &bull; ' + dealer.phone : ''}
-    <div class="mfr-tags">${mfrHtml}</div>`;
-  bar.classList.add('visible');
+function showInfo(d) {
+  const bar = document.getElementById('dealerInfo');
+  bar.innerHTML = '<strong>'+d.name+'</strong> — '+d.address+(d.phone?' • '+d.phone:'')+
+    '<div class="mfr-tags">'+d.manufacturers.map(m=>'<span class="mfr-tag">'+m+'</span>').join('')+'</div>';
+  bar.classList.add('show');
 }
 
+/* ================================================================
+   CHIPS
+================================================================ */
+function setChip(btn, group) {
+  btn.closest('.chip-row').querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  if (group==='platform') currentPlatform = btn.dataset.val;
+  if (group==='tone')     currentTone     = btn.dataset.val;
+}
 
 /* ================================================================
-   IMAGE UPLOAD
+   PHOTO UPLOAD (posts)
 ================================================================ */
-function handleImageUpload(e) {
-  const file = e.target.files[0];
-  if (!file) return;
+document.getElementById('fileInput').addEventListener('change', function(e) {
+  const file = e.target.files[0]; if (!file) return;
   const reader = new FileReader();
-  reader.onload = function(ev) {
-    uploadedImageData = ev.target.result;
-    fetchedImageUrl = null; // clear URL-based image when manually uploading
-    const zone = document.getElementById('uploadZone');
-    zone.classList.add('has-image');
-    zone.innerHTML = `<img src="${ev.target.result}" alt="Home photo">`;
+  reader.onload = ev => {
+    uploadedImg   = ev.target.result;
+    fetchedImgUrl = null;
+    const z = document.getElementById('uploadZone');
+    z.classList.add('has-img');
+    z.innerHTML = '<img src="'+ev.target.result+'" alt="photo">';
   };
   reader.readAsDataURL(file);
-}
-
-
-/* ================================================================
-   PLATFORM / TONE TOGGLES
-================================================================ */
-function setPlatform(btn) {
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  currentPlatform = btn.dataset.platform;
-}
-
-function setTone(btn) {
-  document.querySelectorAll('.tone-chip').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  currentTone = btn.dataset.tone;
-}
-
+});
 
 /* ================================================================
-   POST GENERATION
-================================================================ */
-async function generatePosts() {
-  if (PROXY_URL === 'YOUR_WORKER_URL_HERE') {
-    alert('Please add your Cloudflare Worker URL to the PROXY_URL variable in index.html before using this tool.');
-    return;
-  }
-
-  const btn = document.getElementById('generateBtn');
-  const d = selectedDealer;
-
-  // Gather inputs
-  const modelName    = document.getElementById('modelName').value.trim();
-  const beds         = document.getElementById('beds').value.trim();
-  const baths        = document.getElementById('baths').value.trim();
-  const sqft         = document.getElementById('sqft').value.trim();
-  const price        = document.getElementById('price').value.trim();
-  const extras       = document.getElementById('extras').value.trim();
-  const hashtagStyle = document.getElementById('hashtagStyle').value;
-  const emojiPref    = document.getElementById('emoji').value;
-  const focus        = document.getElementById('focus').value;
-  const ctaSelect    = document.getElementById('cta').value;
-
-  const ctaMap = {
-    visit:   `Visit our showroom at ${d.address}`,
-    call:    d.phone ? `Call us today at ${d.phone}` : `Visit us at ${d.website}`,
-    dm:      'Send us a DM for more details',
-    website: `Visit us at ${d.website}`
-  };
-  const cta = ctaSelect === 'custom'
-    ? document.getElementById('customCta').value.trim()
-    : (ctaMap[ctaSelect] || ctaMap.visit);
-
-  const platforms = currentPlatform === 'both' ? ['facebook', 'instagram'] : [currentPlatform];
-
-  const hashtagInstructions = {
-    moderate: `Include 8–12 hashtags. Mix brand-specific tags from: ${d.hashtags.join(' ')} with relevant general tags`,
-    minimal:  `Include only 3–5 targeted hashtags. Prioritize: ${d.hashtags.slice(0, 3).join(' ')}`,
-    full:     `Include 15–20 hashtags. Use all of: ${d.hashtags.join(' ')} and add additional relevant tags`,
-    none:     'Do NOT include any hashtags'
-  }[hashtagStyle];
-
-  const toneMap = {
-    friendly:     'warm, conversational, and neighborly — like a trusted local expert the community knows',
-    professional: 'clean, informative, and polished — facts-forward, confident, no fluff',
-    excited:      'energetic, enthusiastic, and punchy — exclamation points, urgency, excitement',
-    luxury:       'refined and aspirational — paint a lifestyle picture, premium language, understated elegance'
-  };
-
-  const focusMap = {
-    listing:     'This is a home listing / for sale post. Lead with the home specs and availability.',
-    newmodel:    'This is a new model arrival announcement. Build excitement about seeing it in person at the showroom.',
-    lifestyle:   'Focus on the lifestyle and dream of homeownership. Paint a picture of daily life in this home.',
-    financing:   'Emphasize affordability, financing options, and making homeownership achievable for real families.',
-    hurricane:   'Highlight the structural quality, Wind Zone ratings, and durability — especially relevant for Florida buyers.',
-    landpackage: 'Promote a land-and-home package opportunity. Emphasize owning both land and home together.'
-  };
-
-  const homeDetails = [
-    modelName && `Model: ${modelName}`,
-    (beds || baths) && `${beds}${beds && baths ? ' / ' : ''}${baths}`,
-    sqft && `Size: ${sqft}`,
-    price && `Price: ${price}`,
-    extras && `Additional highlights: ${extras}`
-  ].filter(Boolean).join('\n') || 'No specific home details provided — write generally about this dealer\'s inventory.';
-
-  const platformBlocks = platforms.map(p => {
-    if (p === 'facebook') return `
-FACEBOOK POST:
-- 100–200 words
-- More detailed and story-like tone
-- ${hashtagInstructions}
-- End with this CTA: "${cta}"`;
-    return `
-INSTAGRAM CAPTION:
-- 80–130 words
-- First 1–2 lines must hook before the "more" cutoff
-- ${hashtagInstructions}
-- End with this CTA: "${cta}"`;
-  }).join('\n');
-
-  const prompt = `You are an expert social media copywriter for manufactured and modular home dealers across the US South.
-
-DEALER:
-Name: ${d.name}
-Address: ${d.address}${d.phone ? '\nPhone: ' + d.phone : ''}
-Website: ${d.website}
-Manufacturers carried: ${d.manufacturers.join(', ')}
-Brand notes: ${d.notes}
-
-HOME DETAILS:
-${homeDetails}
-
-POST FOCUS: ${focusMap[focus]}
-TONE: ${toneMap[currentTone]}
-EMOJI: ${emojiPref === 'yes' ? 'Use relevant emoji naturally throughout — do not overdo it' : 'Do NOT use any emoji at all'}
-
-${platformBlocks}
-
-IMPORTANT: Return ONLY a valid JSON object with no markdown formatting, no code fences, no preamble.
-Format:
-{
-  ${platforms.map(p => `"${p}": "complete post text here"`).join(',\n  ')}
-}`;
-
-  // Build message content — prefer uploaded base64, fall back to URL, then text only
-  let messageContent;
-  if (uploadedImageData) {
-    messageContent = [
-      { type: 'image', source: { type: 'base64', media_type: uploadedImageData.split(';')[0].split(':')[1], data: uploadedImageData.split(',')[1] } },
-      { type: 'text', text: prompt + '\n\nNote: A photo of the home has been provided above. Reference specific visible details (exterior style, roofline, color, landscaping, etc.) naturally in the post copy.' }
-    ];
-  } else if (fetchedImageUrl) {
-    messageContent = [
-      { type: 'image', source: { type: 'url', url: fetchedImageUrl } },
-      { type: 'text', text: prompt + '\n\nNote: The feature image of this home has been provided above. Reference specific visible details (exterior style, roofline, color, landscaping, siding, windows, etc.) naturally in the post copy.' }
-    ];
-  } else {
-    messageContent = prompt;
-  }
-
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span>Writing your posts...';
-
-  try {
-    const response = await fetch(PROXY_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: 'claude-opus-4-6',
-        max_tokens: 1500,
-        messages: [{ role: 'user', content: messageContent }]
-      })
-    });
-
-    const data = await response.json();
-    if (data.error) throw new Error(data.error.message);
-
-    const rawText = data.content.map(b => b.text || '').join('');
-    const clean   = rawText.replace(/```json|```/g, '').trim();
-    const posts   = JSON.parse(clean);
-
-    renderPosts(posts, platforms);
-  } catch (err) {
-    const grid = document.getElementById('postsGrid');
-    document.getElementById('outputSection').classList.add('visible');
-    grid.innerHTML = `<div class="error-msg">Error: ${err.message || 'Something went wrong. Check your API key and try again.'}</div>`;
-    console.error(err);
-  }
-
-  btn.disabled = false;
-  btn.innerHTML = 'Generate Posts';
-}
-
-
-/* ================================================================
-   RENDER OUTPUT
-================================================================ */
-function renderPosts(posts, platforms) {
-  const grid    = document.getElementById('postsGrid');
-  const section = document.getElementById('outputSection');
-  const badge   = document.getElementById('outputBadge');
-
-  grid.innerHTML = '';
-  badge.textContent = `${selectedDealer.name} — ${selectedDealer.location}`;
-
-  platforms.forEach(platform => {
-    const text = posts[platform] || '';
-    const card = document.createElement('div');
-    card.className = 'post-card';
-    card.innerHTML = `
-      <div class="post-card-header">
-        <span class="platform-badge ${platform === 'facebook' ? 'badge-fb' : 'badge-ig'}">${platform === 'facebook' ? 'Facebook' : 'Instagram'}</span>
-        <span class="char-count">${text.length} characters</span>
-      </div>
-      <div class="post-text" id="post-${platform}">${escapeHtml(text)}<span class="copy-toast" id="toast-${platform}">Copied!</span></div>
-      <div class="post-actions">
-        <button class="action-btn primary" onclick="copyPost('${platform}')">Copy text</button>
-        <button class="action-btn" onclick="editPost('${platform}')">Edit</button>
-        <button class="action-btn sc-btn" onclick="showScheduler('${platform}')">&#128197; Schedule</button>
-      </div>
-      <div class="scheduler" id="scheduler-${platform}">
-        <div class="scheduler-row">
-          <div>
-            <label class="field-label">Date</label>
-            <input type="date" id="date-${platform}" min="${new Date().toISOString().split('T')[0]}">
-          </div>
-          <div>
-            <label class="field-label">Time</label>
-            <input type="time" id="time-${platform}" value="09:00">
-          </div>
-        </div>
-        <div class="field-row" style="margin-top:8px;">
-          <label class="field-label">SocialChamp profile name (as connected in Pabbly)</label>
-          <input type="text" id="profile-${platform}" placeholder="e.g. Florida Modular Homes Facebook">
-        </div>
-        <button class="send-btn" id="send-${platform}" onclick="sendToPabbly('${platform}')">
-          Send to SocialChamp
-        </button>
-        <div class="send-status" id="status-${platform}"></div>
-      </div>`;
-    grid.appendChild(card);
-  });
-
-  section.classList.add('visible');
-  section.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-}
-
-function escapeHtml(str) {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-}
-
-function copyPost(platform) {
-  const el   = document.getElementById(`post-${platform}`);
-  const text = el.innerText.replace('Copied!', '').trim();
-  navigator.clipboard.writeText(text).then(() => {
-    const toast = document.getElementById(`toast-${platform}`);
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 2200);
-  }).catch(() => {
-    // Fallback for older browsers
-    const ta = document.createElement('textarea');
-    ta.value = text;
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
-    document.body.removeChild(ta);
-  });
-}
-
-function editPost(platform) {
-  const el      = document.getElementById(`post-${platform}`);
-  const current = el.innerText.replace('Copied!', '').trim();
-  el.contentEditable = 'true';
-  el.style.outline   = '2px solid #005a1e';
-  el.focus();
-  el.addEventListener('blur', () => {
-    el.contentEditable = 'false';
-    el.style.outline   = '';
-  }, { once: true });
-}
-
-function showScheduler(platform) {
-  const scheduler = document.getElementById(`scheduler-${platform}`);
-  scheduler.classList.toggle('visible');
-}
-
-async function sendToPabbly(platform) {
-  const btn      = document.getElementById(`send-${platform}`);
-  const status   = document.getElementById(`status-${platform}`);
-  const postEl   = document.getElementById(`post-${platform}`);
-  const postText = postEl.innerText.replace('Copied!', '').trim();
-  const date     = document.getElementById(`date-${platform}`).value;
-  const time     = document.getElementById(`time-${platform}`).value;
-  const profile  = document.getElementById(`profile-${platform}`).value.trim();
-
-  if (!date || !time) {
-    status.textContent = 'Please pick a date and time.';
-    status.style.color = '#c0392b';
-    return;
-  }
-
-  btn.disabled    = true;
-  btn.textContent = 'Sending...';
-  status.textContent = '';
-
-  const payload = {
-    platform:      platform,
-    post_text:     postText,
-    scheduled_date: date,
-    scheduled_time: time,
-    profile_name:  profile || selectedDealer.name + ' ' + platform,
-    dealer_name:   selectedDealer.name,
-    dealer_location: selectedDealer.location,
-    image_url:     uploadedImageData ? 'image_attached' : '',
-  };
-
-  try {
-    const res = await fetch(PABBLY_WEBHOOK, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-
-    if (res.ok || res.status === 200) {
-      status.textContent = '✓ Sent to SocialChamp successfully!';
-      status.style.color = '#1a5c2a';
-      btn.textContent    = 'Sent!';
-      setTimeout(() => {
-        btn.disabled    = false;
-        btn.textContent = 'Send to SocialChamp';
-      }, 3000);
-    } else {
-      throw new Error(`Server responded with ${res.status}`);
-    }
-  } catch (err) {
-    status.textContent = `Error: ${err.message}`;
-    status.style.color = '#c0392b';
-    btn.disabled       = false;
-    btn.textContent    = 'Send to SocialChamp';
-  }
-}
-
-
-/* ================================================================
-   URL FETCH — scrape model home page and auto-fill form
+   URL FETCH — Worker does all HTML parsing server-side
 ================================================================ */
 async function fetchFromUrl() {
   const url    = document.getElementById('modelUrl').value.trim();
   const btn    = document.getElementById('fetchBtn');
   const status = document.getElementById('fetchStatus');
-
-  if (!url.startsWith('http')) {
-    status.style.color = '#c0392b';
-    status.textContent = 'Please enter a valid URL starting with https://';
-    return;
-  }
-
-  btn.disabled    = true;
-  btn.textContent = 'Fetching...';
-  status.style.color = '#888';
-  status.textContent = 'Loading page...';
-
+  if (!url.startsWith('http')) { status.style.color='#c0392b'; status.textContent='Please enter a valid URL starting with https://'; return; }
+  btn.disabled=true; btn.textContent='Fetching...';
+  status.style.color='#888'; status.textContent='Loading page...';
   try {
-    // Step 1: fetch HTML via Worker
-    const res     = await fetch(PROXY_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ _service: 'scrape', _url: url })
+    const res  = await fetch(PROXY_URL, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ _service:'extract', _url:url })
     });
-    const resText = await res.text();
-    // Safely extract html value without JSON.parse (avoids issues with special chars)
-    let html = '';
-    const htmlMatch = resText.match(/"html"\s*:\s*"([\s\S]*)"\s*\}?\s*$/);
-    if (htmlMatch) {
-      try {
-        // Use JSON.parse on just the html field value
-        const parsed = JSON.parse(resText);
-        html = parsed.html || '';
-      } catch(e) {
-        // Fallback: use the raw response text as HTML
-        html = resText;
-      }
-    } else {
-      html = resText;
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message||data.error);
+    const d = data.details||{};
+    if (d.model_name) document.getElementById('modelName').value = d.model_name;
+    if (d.beds)       document.getElementById('beds').value  = d.beds;
+    if (d.baths)      document.getElementById('baths').value = d.baths;
+    if (d.sqft)       document.getElementById('sqft').value  = d.sqft;
+    if (d.price)      document.getElementById('price').value = d.price;
+    if (d.highlights) document.getElementById('extras').value = d.highlights;
+    if (d.feature_image_url) {
+      fetchedImgUrl = d.feature_image_url;
+      uploadedImg   = null;
+      const z = document.getElementById('uploadZone');
+      z.classList.add('has-img');
+      z.innerHTML = '<img src="'+fetchedImgUrl+'" alt="Home" style="width:100%;height:190px;object-fit:cover;border-radius:9px">';
     }
-
-    // Step 2: parse HTML in browser to get clean text + image URLs
-    const parser  = new DOMParser();
-    const doc     = parser.parseFromString(html, 'text/html');
-
-    // Extract image URLs
-    const imgs = Array.from(doc.querySelectorAll('img'))
-      .map(i => i.getAttribute('src') || '')
-      .filter(s => s && !s.includes('data:') && !s.includes('dummy') && !s.includes('facebook.com') && /\.(jpg|jpeg|png|webp)/i.test(s))
-      .map(s => {
-        if (s.startsWith('//')) return 'https:' + s;
-        if (s.startsWith('/')) { try { return new URL(url).origin + s; } catch(e) { return s; } }
-        return s;
-      })
-      .slice(0, 5);
-
-    // Also check anchor hrefs for image links
-    const aImgs = Array.from(doc.querySelectorAll('a[href]'))
-      .map(a => a.getAttribute('href') || '')
-      .filter(h => /\.(jpg|jpeg|png|webp)/i.test(h))
-      .map(s => {
-        if (s.startsWith('/')) { try { return new URL(url).origin + s; } catch(e) { return s; } }
-        return s;
-      })
-      .slice(0, 5);
-
-    const allImgs = [...new Set([...imgs, ...aImgs])];
-
-    // Get clean plain text
-    const bodyText = (doc.body || doc.documentElement).innerText
-      .replace(/[ \t]+/g, ' ')
-      .replace(/\n{3,}/g, '\n\n')
-      .substring(0, 2000);
-
-    // Step 3: send clean text + image list to Claude — safely encoded
-    status.textContent = 'Extracting details...';
-
-    // Sanitize text — remove any chars that could break JSON
-    const safeText = bodyText
-      .replace(/[\u0000-\u001F\u007F]/g, ' ')  // remove control chars
-      .replace(/\\/g, ' ')                        // remove backslashes
-      .replace(/"/g, "'")                           // replace double quotes with single
-      .substring(0, 1500);
-
-    const safeImgs = allImgs
-      .map(u => u.replace(/"/g, '').replace(/\\/g, ''))
-      .join(', ');
-
-    const aiBody = {
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 400,
-      messages: [{
-        role: 'user',
-        content: 'Extract home listing details from this text. Return ONLY a JSON object with keys: model_name, beds, baths, sqft, type, feature_image_url, price, highlights. Use empty string if not found. Pick the best image URL from the list for feature_image_url.\n\nTEXT: ' + safeText + '\n\nIMAGES: ' + safeImgs
-      }]
-    };
-
-    const aiRes  = await fetch(PROXY_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(aiBody)
-    });
-
-    const aiData  = await aiRes.json();
-    if (aiData.error) throw new Error(aiData.error.message);
-
-    const rawText = aiData.content.map(b => b.text || '').join('');
-    const clean   = rawText.replace(/```json|```/g, '').trim();
-    const details = JSON.parse(clean);
-
-    // Step 4: fill form fields
-    if (details.model_name) document.getElementById('modelName').value = details.model_name;
-    if (details.beds)  document.getElementById('beds').value  = details.beds.toString().includes('BR') ? details.beds : details.beds + ' BR';
-    if (details.baths) document.getElementById('baths').value = details.baths.toString().includes('BA') ? details.baths : details.baths + ' BA';
-
-    let sqftVal = details.sqft || '';
-    if (sqftVal) document.getElementById('sqft').value = sqftVal;
-    if (details.price)      document.getElementById('price').value  = details.price;
-    if (details.highlights) document.getElementById('extras').value = details.highlights + (details.type ? ', ' + details.type : '');
-
-    // Step 5: set feature image
-    status.style.color = '#1a5c2a';
-    if (details.feature_image_url) {
-      fetchedImageUrl  = details.feature_image_url;
-      uploadedImageData = null;
-      const zone = document.getElementById('uploadZone');
-      zone.classList.add('has-image');
-      zone.innerHTML = '<img src="' + fetchedImageUrl + '" alt="Home photo" style="width:100%;height:200px;object-fit:cover;border-radius:10px;">';
-      status.textContent = '\u2713 ' + (details.model_name || 'Home') + ' loaded — ready to generate!';
-    } else {
-      status.textContent = '\u2713 Details loaded — no image found, upload one manually.';
-    }
-
+    status.style.color='#1a5c2a';
+    status.textContent = '✓ '+(d.model_name||'Home')+' loaded and ready!';
   } catch(err) {
-    status.style.color = '#c0392b';
-    status.textContent = 'Error: ' + (err.message || 'Could not load page');
+    status.style.color='#c0392b';
+    status.textContent = 'Error: '+(err.message||'Could not load page');
     console.error(err);
   }
-
-  btn.disabled    = false;
-  btn.textContent = 'Fetch';
+  btn.disabled=false; btn.textContent='Fetch';
 }
 
+/* ================================================================
+   GENERATE POSTS
+================================================================ */
+async function generatePosts() {
+  const btn = document.getElementById('generateBtn');
+  const d   = selectedDealer;
+  const modelName = document.getElementById('modelName').value.trim();
+  const beds      = document.getElementById('beds').value.trim();
+  const baths     = document.getElementById('baths').value.trim();
+  const sqft      = document.getElementById('sqft').value.trim();
+  const price     = document.getElementById('price').value.trim();
+  const extras    = document.getElementById('extras').value.trim();
+  const hashStyle = document.getElementById('hashtagStyle').value;
+  const emojiPref = document.getElementById('emoji').value;
+  const focus     = document.getElementById('focus').value;
+  const ctaSel    = document.getElementById('cta').value;
+  const ctaMap    = { visit:'Visit our showroom at '+d.address, call:d.phone?'Call us today at '+d.phone:'Visit '+d.website, dm:'Send us a DM for details', website:'Visit us at '+d.website };
+  const cta       = ctaSel==='custom' ? document.getElementById('customCta').value.trim() : (ctaMap[ctaSel]||ctaMap.visit);
+  const platforms = currentPlatform==='both' ? ['facebook','instagram'] : [currentPlatform];
+  const hashMap   = { moderate:'Include 8-12 hashtags mixing: '+d.hashtags.join(' ')+' with relevant general tags', minimal:'Include 3-5 hashtags, prioritize: '+d.hashtags.slice(0,3).join(' '), full:'Include 15-20 hashtags using: '+d.hashtags.join(' ')+' plus more', none:'No hashtags' };
+  const toneMap   = { friendly:'warm and conversational', professional:'clean and polished', excited:'energetic with exclamation points', luxury:'refined and aspirational' };
+  const focusMap  = { listing:'Home listing for sale — lead with specs.', newmodel:'New model arrival — build excitement.', lifestyle:'Lifestyle — paint a picture of living there.', financing:'Affordability and financing options.', hurricane:'Structural quality and Wind Zone durability.', landpackage:'Land and home package opportunity.' };
+  const homeDetails = [modelName&&'Model: '+modelName,(beds||baths)&&(beds+(beds&&baths?' / ':'')+baths),sqft&&'Size: '+sqft,price&&'Price: '+price,extras&&'Highlights: '+extras].filter(Boolean).join('\n')||'Write generally about this dealers inventory.';
+  const platBlocks  = platforms.map(p=>p==='facebook'?'\nFACEBOOK POST:\n- 100-200 words\n- '+hashMap[hashStyle]+'\n- End with: "'+cta+'"':'\nINSTAGRAM CAPTION:\n- 80-130 words, punchy opener\n- '+hashMap[hashStyle]+'\n- End with: "'+cta+'"').join('\n');
+  const prompt = 'You are a social media copywriter for manufactured home dealers.\n\nDEALER: '+d.name+'\nADDRESS: '+d.address+(d.phone?'\nPHONE: '+d.phone:'')+'\nWEBSITE: '+d.website+'\nMANUFACTURERS: '+d.manufacturers.join(', ')+'\nNOTES: '+d.notes+'\n\nHOME:\n'+homeDetails+'\n\nFOCUS: '+focusMap[focus]+'\nTONE: '+toneMap[currentTone]+'\nEMOJI: '+(emojiPref==='yes'?'Use emoji naturally':'No emoji')+'\n'+platBlocks+'\n\nReturn ONLY valid JSON:\n{'+platforms.map(p=>'"'+p+'":"post text"').join(',')+'}';
+  let msgContent;
+  if (uploadedImg) {
+    msgContent = [{ type:'image', source:{ type:'base64', media_type:uploadedImg.split(';')[0].split(':')[1], data:uploadedImg.split(',')[1] }},{ type:'text', text:prompt+'\n\nNote: Home photo provided. Reference visible exterior details.' }];
+  } else if (fetchedImgUrl) {
+    msgContent = [{ type:'image', source:{ type:'url', url:fetchedImgUrl }},{ type:'text', text:prompt+'\n\nNote: Feature image provided. Reference visible exterior details.' }];
+  } else {
+    msgContent = prompt;
+  }
+  btn.disabled=true; btn.innerHTML='<span class="spinner"></span>Writing posts...';
+  try {
+    const res  = await fetch(PROXY_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ model:'claude-opus-4-6', max_tokens:1500, messages:[{ role:'user', content:msgContent }] }) });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+    const raw   = data.content.map(b=>b.text||'').join('');
+    const clean = raw.replace(/```json|```/g,'').trim();
+    generatedPosts = JSON.parse(clean);
+    renderPosts(generatedPosts, platforms);
+  } catch(err) {
+    document.getElementById('outputSection').classList.add('show');
+    document.getElementById('postsGrid').innerHTML = '<div class="err">Error: '+(err.message||'Something went wrong')+'</div>';
+    console.error(err);
+  }
+  btn.disabled=false; btn.innerHTML='Generate Posts';
+}
 
-// loadImageFromUrl removed — images now passed directly via URL to Claude
+/* ================================================================
+   RENDER POSTS
+================================================================ */
+function renderPosts(posts, platforms) {
+  const grid = document.getElementById('postsGrid');
+  document.getElementById('outputBadge').textContent = selectedDealer.name+' — '+selectedDealer.location;
+  grid.innerHTML = '';
+  platforms.forEach(p => {
+    const text = posts[p]||'';
+    const card = document.createElement('div');
+    card.className = 'post-card';
+    card.innerHTML = `<div class="post-card-hdr"><span class="plat-badge ${p==='facebook'?'badge-fb':'badge-ig'}">${p==='facebook'?'Facebook':'Instagram'}</span><span class="char-count">${text.length} chars</span></div><div class="post-text" id="post-${p}">${esc(text)}<span class="copy-toast" id="toast-${p}">Copied!</span></div><div class="post-actions"><button class="btn-sec" onclick="copyPost('${p}')">Copy</button><button class="btn-sec" onclick="editPost('${p}')">Edit</button><button class="btn-sec" style="background:#1a1a2e;color:#fff;border-color:#1a1a2e" onclick="toggleSched('${p}')">📅 Schedule</button></div><div class="sched" id="sched-${p}"><div class="sched-row"><div><label class="field-label">Date</label><input type="date" id="date-${p}" min="${new Date().toISOString().split('T')[0]}"></div><div><label class="field-label">Time</label><input type="time" id="time-${p}" value="09:00"></div></div><div class="field-row"><label class="field-label">SocialChamp Profile Name</label><input type="text" id="profile-${p}" placeholder="${selectedDealer.name} ${p==='facebook'?'Facebook':'Instagram'}"></div><button class="send-btn" onclick="sendToPabbly('${p}')">Send to SocialChamp via Pabbly</button><div class="send-status" id="sstatus-${p}"></div></div>`;
+    grid.appendChild(card);
+  });
+  document.getElementById('outputSection').classList.add('show');
+  document.getElementById('outputSection').scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
 
+function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-// Kick off
+function copyPost(p) {
+  const text = document.getElementById('post-'+p).innerText.replace('Copied!','').trim();
+  navigator.clipboard.writeText(text).then(() => {
+    const t = document.getElementById('toast-'+p); t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+  });
+}
+
+function editPost(p) {
+  const el = document.getElementById('post-'+p);
+  el.contentEditable='true'; el.style.outline='2px solid var(--green)'; el.focus();
+  el.addEventListener('blur', () => { el.contentEditable='false'; el.style.outline=''; }, {once:true});
+}
+
+function toggleSched(p) { document.getElementById('sched-'+p).classList.toggle('show'); }
+
+async function sendToPabbly(p) {
+  const btn  = document.querySelector('#sched-'+p+' .send-btn');
+  const stat = document.getElementById('sstatus-'+p);
+  const text = document.getElementById('post-'+p).innerText.replace('Copied!','').trim();
+  const date = document.getElementById('date-'+p).value;
+  const time = document.getElementById('time-'+p).value;
+  const prof = document.getElementById('profile-'+p).value.trim() || selectedDealer.name+' '+p;
+  if (!date||!time) { stat.style.color='#c0392b'; stat.textContent='Pick a date and time first.'; return; }
+  btn.disabled=true; btn.textContent='Sending...'; stat.textContent='';
+  try {
+    const res = await fetch(PABBLY_WEBHOOK, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ platform:p, post_text:text, scheduled_date:date, scheduled_time:time, profile_name:prof, dealer_name:selectedDealer.name, dealer_location:selectedDealer.location }) });
+    if (res.ok||res.status===200) { stat.style.color='#1a5c2a'; stat.textContent='✓ Sent to SocialChamp!'; btn.textContent='Sent!'; setTimeout(()=>{ btn.disabled=false; btn.textContent='Send to SocialChamp via Pabbly'; },3000); }
+    else throw new Error('Status '+res.status);
+  } catch(err) { stat.style.color='#c0392b'; stat.textContent='Error: '+err.message; btn.disabled=false; btn.textContent='Send to SocialChamp via Pabbly'; }
+}
+
+/* ================================================================
+   CSV EXPORT
+================================================================ */
+function exportCSV() {
+  if (!Object.keys(generatedPosts).length) { alert('Generate posts first!'); return; }
+  const rows = [['Platform','Post Text','Dealer','Scheduled Date','Scheduled Time']];
+  Object.entries(generatedPosts).forEach(([p,text]) => rows.push([p, '"'+text.replace(/"/g,'""')+'"', selectedDealer.name, '', '']));
+  const blob = new Blob([rows.map(r=>r.join(',')).join('\n')],{type:'text/csv'});
+  const a = document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download = selectedDealer.name.replace(/\s+/g,'-')+'-posts.csv'; a.click();
+}
+
+/* ================================================================
+   GRAPHIC GENERATOR
+================================================================ */
+function selectTemplate(n) {
+  currentTemplate = n;
+  document.getElementById('tmpl1btn').classList.toggle('active',n===1);
+  document.getElementById('tmpl2btn').classList.toggle('active',n===2);
+  document.getElementById('t1controls').style.display = n===1?'':'none';
+  document.getElementById('t2controls').style.display = n===2?'':'none';
+  renderGraphic();
+}
+
+// Logo
+document.getElementById('logoInput').addEventListener('change', function(e) {
+  const file=e.target.files[0]; if(!file) return;
+  const img=new Image(); img.onload=()=>{ logoImg=img; document.getElementById('logoZone').textContent='✓ '+file.name; document.getElementById('logoZone').classList.add('has-logo'); renderGraphic(); }; img.src=URL.createObjectURL(file);
+});
+
+// Graphic photo helpers
+function setupGUpload(inputId, zoneId, cb) {
+  document.getElementById(inputId).addEventListener('change', function(e) {
+    const file=e.target.files[0]; if(!file) return;
+    const img=new Image(); img.onload=()=>{ cb(img); const z=document.getElementById(zoneId); if(z){z.classList.add('has-img');z.innerHTML='<img src="'+img.src+'" style="width:100%;height:120px;object-fit:cover;border-radius:9px">';} renderGraphic(); }; img.src=URL.createObjectURL(file);
+  });
+}
+setupGUpload('gFile1','gZone1', img=>gImg1=img);
+setupGUpload('gFile2','gZone2', img=>gImg2=img);
+[0,1,2].forEach(i => {
+  document.getElementById('int'+i).addEventListener('change', function(e) {
+    const file=e.target.files[0]; if(!file) return;
+    const img=new Image(); img.onload=()=>{ intImgs[i]=img; const s=document.getElementById('slot'+i); s.classList.add('filled'); s.innerHTML='<img src="'+img.src+'" style="width:100%;height:100%;object-fit:cover">'; renderGraphic(); }; img.src=URL.createObjectURL(file);
+  });
+});
+
+function renderGraphic() { currentTemplate===1 ? renderT1() : renderT2(); }
+
+function renderT1() {
+  const cv=document.getElementById('graphicCanvas'), ctx=cv.getContext('2d'), W=1080, H=1080;
+  cv.width=W; cv.height=H;
+  const model     = (document.getElementById('g1model').value||'THE MODEL NAME').toUpperCase();
+  const specs     =  document.getElementById('g1specs').value||'3 Bedroom / 2 Bath / 1,400 Sq Ft';
+  const price     =  document.getElementById('g1price').value||'';
+  const highlight = (document.getElementById('g1highlight').value||'READY FOR IMMEDIATE DELIVERY!').toUpperCase();
+  const subhl     = (document.getElementById('g1subhl').value||'ON YOUR LOT TODAY').toUpperCase();
+  const badge     = (document.getElementById('g1badge').value||'MODEL HOME FOR SALE').toUpperCase();
+  const website   =  document.getElementById('g1website').value||gDealer.website||'';
+  const phone     =  document.getElementById('g1phone').value||gDealer.phone||'';
+  const address   =  document.getElementById('g1address').value||gDealer.address||'';
+  // BG
+  ctx.fillStyle='#f0f0f0'; ctx.fillRect(0,0,W,H);
+  // Header
+  const hdrH=240;
+  const g=ctx.createLinearGradient(0,0,W,hdrH); g.addColorStop(0,'#1565c0'); g.addColorStop(1,'#0d47a1');
+  ctx.fillStyle=g; ctx.fillRect(0,0,W,hdrH);
+  // Website
+  ctx.fillStyle='rgba(255,255,255,0.85)'; ctx.font='600 26px Arial'; ctx.textAlign='right';
+  ctx.fillText(website.toUpperCase(), W-30, 50);
+  // Model name
+  ctx.fillStyle='#fff'; ctx.textAlign='center';
+  let fs=90; ctx.font='bold '+fs+'px Georgia';
+  while(ctx.measureText(model).width>W-80&&fs>44){fs-=4;ctx.font='bold '+fs+'px Georgia';}
+  ctx.fillText(model, W/2, 148);
+  // Specs
+  ctx.fillStyle='rgba(255,255,255,0.92)'; ctx.font='500 36px Arial';
+  ctx.fillText(specs+(price?' | '+price:''), W/2, 208);
+  // Badge
+  drawBadge(ctx,90,90,badge);
+  // Photo
+  const photoY=hdrH, photoH=470;
+  if(gImg1){ctx.save();ctx.beginPath();ctx.rect(0,photoY,W,photoH);ctx.clip();const sc=Math.max(W/gImg1.width,photoH/gImg1.height);const dw=gImg1.width*sc,dh=gImg1.height*sc;ctx.drawImage(gImg1,(W-dw)/2,photoY+(photoH-dh)/2,dw,dh);ctx.restore();}
+  else{ctx.fillStyle='#d0d0d0';ctx.fillRect(0,photoY,W,photoH);ctx.fillStyle='#999';ctx.font='28px Arial';ctx.textAlign='center';ctx.fillText('Upload home photo',W/2,photoY+photoH/2);}
+  // Cyan bar
+  const b1Y=photoY+photoH;
+  ctx.fillStyle='#00bcd4'; ctx.fillRect(0,b1Y,W,80);
+  ctx.fillStyle='#fff'; let hfs=38; ctx.font='bold '+hfs+'px Arial'; ctx.textAlign='center';
+  while(ctx.measureText(highlight).width>W-60&&hfs>20){hfs-=2;ctx.font='bold '+hfs+'px Arial';}
+  ctx.fillText(highlight,W/2,b1Y+52);
+  // Dark blue bar
+  const b2Y=b1Y+80;
+  ctx.fillStyle='#1a237e'; ctx.fillRect(0,b2Y,W,64);
+  ctx.fillStyle='#e0f7fa'; ctx.font='bold 32px Arial'; ctx.textAlign='center';
+  ctx.fillText(subhl,W/2,b2Y+42);
+  // Footer
+  const fY=b2Y+64, fH=H-fY;
+  ctx.fillStyle='#0d2b5e'; ctx.fillRect(0,fY,W,fH);
+  ctx.strokeStyle='#1a6fc4'; ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(W/2,fY+16);ctx.lineTo(W/2,H-16);ctx.stroke();
+  ctx.fillStyle='rgba(255,255,255,0.6)';ctx.font='500 22px Arial';ctx.textAlign='center';
+  ctx.fillText('CALL OR TEXT',W/4,fY+44);
+  ctx.fillStyle='#fff'; let pfs=48; ctx.font='bold '+pfs+'px Arial';
+  while(ctx.measureText(phone).width>W/2-40&&pfs>26){pfs-=2;ctx.font='bold '+pfs+'px Arial';}
+  ctx.fillText(phone,W/4,fY+96);
+  // Address right
+  ctx.fillStyle='rgba(255,255,255,0.85)'; ctx.font='500 24px Arial'; ctx.textAlign='center';
+  wrapText(ctx,address,W/2-40).forEach((line,i)=>ctx.fillText(line,W*3/4,fY+44+i*34));
+  // Logo
+  if(logoImg){const lh=60,lw=lh*(logoImg.width/logoImg.height);ctx.drawImage(logoImg,W-lw-20,H-lh-14,lw,lh);}
+}
+
+function renderT2() {
+  const cv=document.getElementById('graphicCanvas'), ctx=cv.getContext('2d'), W=1080, H=1080;
+  cv.width=W; cv.height=H;
+  const headline = (document.getElementById('g2headline').value||'FIND YOUR DREAM HOME').toUpperCase();
+  const model    =  document.getElementById('g2model').value||'The Model Name';
+  const specs    =  document.getElementById('g2specs').value||'3 Bedroom | 2 Bath | 1,400 Sq Ft';
+  const phone    =  document.getElementById('g2phone').value||gDealer.phone||'';
+  const website  =  document.getElementById('g2website').value||gDealer.website||'';
+  // BG
+  ctx.fillStyle='#eeebe5'; ctx.fillRect(0,0,W,H);
+  const topH=380;
+  // Left green box
+  ctx.fillStyle='#2d5a27'; ctx.fillRect(0,0,420,topH);
+  if(logoImg){const lh=80,lw=lh*(logoImg.width/logoImg.height);ctx.drawImage(logoImg,(420-lw)/2,28,lw,lh);}
+  else{ctx.fillStyle='rgba(255,255,255,0.4)';ctx.font='600 24px Arial';ctx.textAlign='center';ctx.fillText(gDealer.name.toUpperCase(),210,56);}
+  ctx.fillStyle='#fff'; ctx.font='bold 50px Georgia'; ctx.textAlign='center';
+  wrapText(ctx,headline,360,50).forEach((line,i)=>ctx.fillText(line,210,158+i*60));
+  // Right photo
+  if(gImg2){ctx.save();ctx.beginPath();ctx.rect(430,0,W-430,topH);ctx.clip();const sc=Math.max((W-430)/gImg2.width,topH/gImg2.height);const dw=gImg2.width*sc,dh=gImg2.height*sc;ctx.drawImage(gImg2,430+((W-430)-dw)/2,(topH-dh)/2,dw,dh);ctx.restore();}
+  else{ctx.fillStyle='#c8c5be';ctx.fillRect(430,0,W-430,topH);ctx.fillStyle='#888';ctx.font='22px Arial';ctx.textAlign='center';ctx.fillText('Upload exterior photo',430+(W-430)/2,topH/2);}
+  // Interior strip
+  const stripY=topH+10, stripH=230, slotW=(W-20)/3;
+  intImgs.forEach((img,i)=>{
+    const x=i*(slotW+10);
+    ctx.save();ctx.beginPath();ctx.rect(x,stripY,slotW,stripH);ctx.clip();
+    if(img){const sc=Math.max(slotW/img.width,stripH/img.height);const dw=img.width*sc,dh=img.height*sc;ctx.drawImage(img,x+(slotW-dw)/2,stripY+(stripH-dh)/2,dw,dh);}
+    else{ctx.fillStyle='#d5d0c8';ctx.fillRect(x,stripY,slotW,stripH);ctx.fillStyle='#999';ctx.font='18px Arial';ctx.textAlign='center';ctx.fillText('Interior '+(i+1),x+slotW/2,stripY+stripH/2);}
+    ctx.restore();
+  });
+  // Model section
+  const nameY=stripY+stripH+10, nameH=140;
+  ctx.fillStyle='#f5f2ec'; ctx.fillRect(0,nameY,W,nameH);
+  ctx.strokeStyle='#2d5a27'; ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(40,nameY+50);ctx.lineTo(W/2-180,nameY+50);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(W/2+180,nameY+50);ctx.lineTo(W-40,nameY+50);ctx.stroke();
+  ctx.fillStyle='#1a1a1a'; ctx.font='bold 54px Georgia'; ctx.textAlign='center';
+  ctx.fillText(model, W/2, nameY+68);
+  ctx.fillStyle='#444'; ctx.font='500 30px Arial';
+  ctx.fillText(specs, W/2, nameY+116);
+  // Footer
+  const fY=nameY+nameH, fH=H-fY;
+  ctx.fillStyle='#2d5a27'; ctx.fillRect(0,fY,W,fH);
+  const cy=fY+fH/2;
+  ctx.fillStyle='#fff'; ctx.beginPath();ctx.arc(72,cy,26,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#2d5a27'; ctx.font='bold 22px Arial'; ctx.textAlign='center';ctx.fillText('T',72,cy+8);
+  ctx.fillStyle='#fff'; ctx.font='bold 40px Arial'; ctx.textAlign='left';ctx.fillText(phone,112,cy+14);
+  ctx.fillStyle='#fff'; ctx.beginPath();ctx.arc(W-370,cy,26,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#2d5a27'; ctx.font='bold 20px Arial'; ctx.textAlign='center';ctx.fillText('W',W-370,cy+7);
+  ctx.fillStyle='#fff'; ctx.font='500 30px Arial'; ctx.textAlign='left';ctx.fillText(website,W-334,cy+10);
+}
+
+function drawBadge(ctx,cx,cy,text) {
+  ctx.save(); ctx.fillStyle='#d32f2f'; ctx.beginPath();
+  for(let i=0;i<16;i++){const a=(i*Math.PI)/8,r=i%2===0?90:68,x=cx+Math.cos(a)*r,y=cy+Math.sin(a)*r;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}
+  ctx.closePath(); ctx.fill();
+  ctx.fillStyle='#fff'; ctx.font='bold 20px Arial'; ctx.textAlign='center';
+  const words=text.split(' '),lines=[];let line='';
+  words.forEach(w=>{const t=line+(line?' ':'')+w;if(ctx.measureText(t).width>110&&line){lines.push(line);line=w;}else line=t;});
+  if(line)lines.push(line);
+  lines.forEach((l,i)=>ctx.fillText(l,cx,cy-(lines.length-1)*12+i*24+6));
+  ctx.restore();
+}
+
+function wrapText(ctx,text,maxWidth) {
+  const words=text.split(' '),lines=[];let line='';
+  words.forEach(w=>{const t=line+(line?' ':'')+w;if(ctx.measureText(t).width>maxWidth&&line){lines.push(line);line=w;}else line=t;});
+  if(line)lines.push(line);
+  return lines;
+}
+
+function downloadGraphic() {
+  renderGraphic();
+  const a=document.createElement('a');
+  a.download='home-post-graphic.png';
+  a.href=document.getElementById('graphicCanvas').toDataURL('image/png');
+  a.click();
+}
+
+/* ================================================================
+   INIT
+================================================================ */
+function init() {
+  buildGrid('dealerGrid', d=>{ selectedDealer=d; showInfo(d); });
+  buildGrid('gDealerGrid', d=>{ gDealer=d; renderGraphic(); });
+  showInfo(DEALERS[0]);
+  document.getElementById('cta').addEventListener('change', function(){ document.getElementById('customCtaRow').style.display=this.value==='custom'?'':'none'; });
+  renderGraphic();
+}
+
 init();
 </script>
 </body>
