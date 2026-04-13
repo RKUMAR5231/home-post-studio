@@ -1185,26 +1185,26 @@ async function fetchFromUrl() {
     }
     if (!html) throw new Error('Could not load page — check the URL and try again.');
 
-    // Step 2: ask Claude to extract the home details from the HTML
+    // Step 2: strip HTML to plain text before sending to Claude
     status.textContent = 'Extracting home details...';
 
-    const prompt = `From this HTML page for a manufactured or modular home listing, extract:
-1. model_name - the name of the home model
-2. beds - number of bedrooms
-3. baths - number of bathrooms
-4. sqft - square footage
-5. width - width in feet if available
-6. length - length in feet if available
-7. type - manufactured, modular, mobile etc
-8. feature_image_url - the main/feature image URL (full absolute URL)
-9. price - price if shown
-10. highlights - any key features mentioned (metal roof, wind zone, etc)
+    // Parse HTML and extract just the text + image srcs — avoids JSON encoding issues
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
 
-HTML:
-${html.substring(0, 8000)}
+    // Get all image URLs from the page
+    const imgUrls = Array.from(doc.querySelectorAll('img[src]'))
+      .map(img => img.src || img.getAttribute('src'))
+      .filter(src => src && !src.includes('data:') && !src.includes('dummy') && !src.includes('facebook') && (src.includes('.jpg') || src.includes('.png') || src.includes('.webp')))
+      .slice(0, 5)
+      .join('\n');
 
-Return ONLY valid JSON, no markdown:
-{"model_name":"","beds":"","baths":"","sqft":"","type":"","feature_image_url":"","price":"","highlights":""}`;
+    // Get clean page text
+    const pageText = (doc.body ? doc.body.innerText : doc.documentElement.innerText || '')
+      .replace(/\s+/g, ' ')
+      .substring(0, 3000);
+
+    const prompt = 'From this manufactured/modular home listing page, extract details.\n\nPAGE TEXT:\n' + pageText + '\n\nIMAGE URLS FOUND:\n' + imgUrls + '\n\nReturn ONLY valid JSON (no markdown):\n{"model_name":"","beds":"","baths":"","sqft":"","type":"","feature_image_url":"","price":"","highlights":""}';
 
     const aiRes = await fetch(PROXY_URL, {
       method: 'POST',
