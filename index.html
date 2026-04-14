@@ -766,60 +766,78 @@ function exportCSV() {
    FILL GRAPHIC FROM POST
 ═══════════════════════════════════════════════════ */
 function fillGraphic() {
-  const model=document.getElementById('modelName').value.trim();
-  const beds=document.getElementById('beds').value.trim();
-  const baths=document.getElementById('baths').value.trim();
-  const sqft=document.getElementById('sqft').value.trim();
-  const price=document.getElementById('price').value.trim();
-  if (!model&&!beds){alert('Generate a post first so home details are filled in.');return;}
+  const model = document.getElementById('modelName').value.trim();
+  const beds  = document.getElementById('beds').value.trim();
+  const baths = document.getElementById('baths').value.trim();
+  const sqft  = document.getElementById('sqft').value.trim();
+  const price = document.getElementById('price').value.trim();
+  if (!model && !beds) { alert('Fetch a home URL or fill in details first.'); return; }
 
-  // Switch tab first WITHOUT resetting layers
-  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
-  const gtab=document.querySelectorAll('.tab')[1]; gtab.classList.add('active');
-  ['posts','graphics','brands'].forEach(t=>document.getElementById('tab-'+t).style.display=t==='graphics'?'':'none');
+  // Sync graphic dealer to match posts dealer
+  gDealer = selDealer;
 
-  // Now update layer text (after tab switch, layers are already initialized)
-  const bk=getActiveBK();
-  updateLayerText('model',  model.toUpperCase());
-  updateLayerText('headline', model.toUpperCase());
-  updateLayerText('specs',  [beds,baths,sqft].filter(Boolean).join(' | '));
-  updateLayerText('sqft',   sqft);
-  updateLayerText('price',  price?'FROM '+price:price);
-  updateLayerText('phone',  bk.phone||gDealer.phone||'');
-  updateLayerText('website',bk.website||gDealer.website||'');
-  updateLayerText('address',bk.address||gDealer.address||'');
-  updateLayerText('dealer', gDealer.name.toUpperCase());
-  updateLayerText('calltext','CALL OR TEXT');
+  // Sync the dealer selection UI in graphic tab
+  document.querySelectorAll('#gDealerGrid .db').forEach(b => b.classList.remove('active'));
+  const gIdx = DEALERS.findIndex(d => d.id === selDealer.id);
+  const gBtns = document.querySelectorAll('#gDealerGrid .db');
+  if (gBtns[gIdx]) gBtns[gIdx].classList.add('active');
+
+  // Init layers fresh with correct dealer brand kit
+  initLayers();
+
+  // Now overwrite layer text with actual home data
+  const bk = getActiveBK();
+  if (model) {
+    updateLayerText('model',    model.toUpperCase());
+    updateLayerText('headline', model.toUpperCase());
+  }
+  const specs = [beds, baths, sqft].filter(Boolean).join(' | ');
+  if (specs)  updateLayerText('specs',    specs);
+  if (sqft)   updateLayerText('sqft',     sqft);
+  if (price)  updateLayerText('price',    'FROM ' + price);
+  updateLayerText('phone',    bk.phone    || selDealer.phone    || '');
+  updateLayerText('website',  bk.website  || selDealer.website  || '');
+  updateLayerText('address',  bk.address  || selDealer.address  || '');
+  updateLayerText('dealer',   selDealer.name.toUpperCase());
+  updateLayerText('calltext', 'CALL OR TEXT');
   renderLayerList();
 
-  // Load image — try direct first, fall back to proxy if CORS blocks it
+  // Switch to graphic tab (after layer updates so nothing resets)
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab')[1].classList.add('active');
+  ['posts','graphics','brands'].forEach(t =>
+    document.getElementById('tab-'+t).style.display = t==='graphics' ? '' : 'none'
+  );
+
+  // Load image via proxy to bypass CORS
   if (fetchedUrl) {
-    // Always use proxy to avoid CORS issues with dealer sites
+    const status = document.getElementById('wpStatus');
+    if (status) { status.style.color='#888'; status.textContent='Loading image...'; }
     fetch(PROXY_URL, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({_service:'extract_img', _url:fetchedUrl})
-    }).then(r=>r.json()).then(data=>{
-      if (data.base64) {
-        const img=new Image();
-        img.onload=()=>{ gImg1=img; gImg2=img;
-          const z=document.getElementById('gZone1');
-          z.classList.add('has'); z.innerHTML='<img src="'+img.src+'" style="width:100%;height:120px;object-fit:cover;border-radius:9px">';
-          renderCanvas();
-        };
-        img.src='data:image/jpeg;base64,'+data.base64;
-      } else {
-        // Try loading directly as fallback
-        const img=new Image();
-        img.onload=()=>{ gImg1=img; gImg2=img; renderCanvas(); };
-        img.onerror=()=>renderCanvas();
-        img.src=fetchedUrl;
-      }
-    }).catch(()=>{
-      const img=new Image();
-      img.onload=()=>{ gImg1=img; gImg2=img; renderCanvas(); };
-      img.onerror=()=>renderCanvas();
-      img.src=fetchedUrl;
-    });
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ _service:'extract_img', _url:fetchedUrl })
+    })
+    .then(r => r.json())
+    .then(data => {
+      const src = data.base64
+        ? 'data:image/jpeg;base64,' + data.base64
+        : fetchedUrl;
+      const img = new Image();
+      img.onload = () => {
+        gImg1 = img; gImg2 = img;
+        const z = document.getElementById('gZone1');
+        if (z) { z.classList.add('has'); z.innerHTML='<img src="'+src+'" style="width:100%;height:120px;object-fit:cover;border-radius:9px">'; }
+        if (status) { status.style.color='#1a5c2a'; status.textContent='✓ Image loaded into graphic!'; }
+        renderCanvas();
+      };
+      img.onerror = () => { if (status) { status.style.color='#c0392b'; status.textContent='Could not load image. Upload manually in Graphic Studio.'; } renderCanvas(); };
+      img.src = src;
+    })
+    .catch(() => renderCanvas());
+  } else if (uploadedImg) {
+    const img = new Image();
+    img.onload = () => { gImg1=img; gImg2=img; renderCanvas(); };
+    img.src = uploadedImg;
   } else {
     renderCanvas();
   }
